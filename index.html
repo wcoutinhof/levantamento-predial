@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Levantamento Predial — Memorial de Cálculo</title>
+<meta name="theme-color" content="#173b5d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Levantamento Predial">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+
+<style>
+:root{
+  --paper:#eef2f5;--grid:#dce4ea;--ink:#16324a;--soft:#526a7e;
+  --blue:#173b5d;--blue2:#245b88;--orange:#dd682c;--line:#c7d2db;
+  --white:#fff;--green:#2e7d4f;--red:#a33a3a;--radius:10px
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  min-height:100vh;padding-bottom:98px;color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:
+  linear-gradient(var(--grid) 1px,transparent 1px) 0 0/24px 24px,
+  linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/24px 24px,
+  var(--paper)
+}
+header{
+  position:sticky;top:0;z-index:20;padding:13px 14px 10px;color:white;
+  background:var(--blue);box-shadow:0 3px 12px rgba(15,39,64,.22)
+}
+.headrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.eyebrow{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#b9cad8}
+h1{font-size:18px;margin:2px 0 0}.pill{background:var(--orange);padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.tabs{display:flex;gap:3px;margin-top:10px;padding:3px;background:rgba(255,255,255,.1);border-radius:8px}
+.tab{flex:1;text-align:center;padding:8px 3px;border-radius:6px;font-size:12px;font-weight:700;color:#c9d8e4}
+.tab.active{background:white;color:var(--blue)}
+main{padding:13px}
+.screen{display:none}.screen.active{display:block}
+.card{background:white;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:13px}
+.cardhead{padding:11px 13px;background:var(--blue);color:white;font-size:13px;font-weight:800;text-transform:uppercase}
+.cardbody{padding:12px 13px 2px}
+.field{margin-bottom:12px}
+label{display:block;font-size:11px;font-weight:800;color:var(--soft);text-transform:uppercase;margin-bottom:5px}
+input,select,textarea{
+  width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:8px;
+  background:#fbfcfd;color:var(--ink);font-size:16px;font-family:inherit
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue2);background:white}
+textarea{min-height:62px;resize:vertical}
+.req label:after{content:" *";color:var(--red)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.btn{
+  border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:800;cursor:pointer
+}
+.btn-primary{background:var(--orange);color:white}.btn-blue{background:var(--blue2);color:white}
+.btn-light{background:#edf2f5;color:var(--ink);border:1px solid var(--line)}
+.btn-danger{background:#fff;color:var(--red);border:1px solid #dfbcbc}
+.btn-small{padding:8px 10px;font-size:12px}
+.actions{display:flex;gap:8px}
+.actions .btn{flex:1}
+.type-row,.entry-row{
+  display:grid;grid-template-columns:70px 1fr 62px 62px 38px;gap:7px;align-items:center;margin-bottom:8px
+}
+.type-row input,.entry-row input,.entry-row select{padding:9px 8px;font-size:14px}
+.type-badge{
+  display:flex;align-items:center;justify-content:center;height:39px;border-radius:7px;
+  background:var(--blue);color:white;font-weight:900;font-family:ui-monospace,monospace
+}
+.iconbtn{
+  height:38px;border:1px solid var(--line);border-radius:7px;background:#f7f9fa;font-size:16px
+}
+.calcgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.calc{
+  padding:10px;border-radius:8px;background:#f4f7f9;border:1px solid var(--line)
+}
+.calc span{display:block;font-size:10px;color:var(--soft);text-transform:uppercase;font-weight:800}
+.calc strong{display:block;margin-top:3px;font-size:16px}
+.legend{
+  width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px
+}
+.legend th,.legend td{border:1px solid var(--line);padding:7px;text-align:left}
+.legend th{background:#eef3f6}
+.saved{display:none;padding:10px 12px;margin-bottom:12px;border:1px solid #b8dec6;background:#e9f5ed;color:var(--green);border-radius:8px;font-weight:700;font-size:13px}
+.saved.show{display:block}
+.listcard{background:white;border:1px solid var(--line);border-radius:9px;padding:11px 12px;margin-bottom:9px}
+.listtop{display:flex;justify-content:space-between;gap:8px}.listname{font-weight:800}.listsub{font-size:12px;color:var(--soft);margin-top:3px}
+.foot{
+  position:fixed;bottom:0;left:0;right:0;z-index:20;background:white;border-top:1px solid var(--line);
+  padding:9px 13px calc(9px + env(safe-area-inset-bottom));display:flex;gap:9px
+}
+.foot .btn{flex:1}
+.toast{
+  position:fixed;bottom:95px;left:50%;transform:translateX(-50%);
+  background:var(--ink);color:white;padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;
+  transition:.2s;font-size:12px;font-weight:700;z-index:40
+}
+.toast.show{opacity:1}
+.help{font-size:11.5px;color:var(--soft);line-height:1.4;margin-top:5px}
+@media(max-width:390px){.row3{grid-template-columns:1fr}.type-row,.entry-row{grid-template-columns:58px 1fr 54px 54px 36px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="headrow">
+    <div><div class="eyebrow">Levantamento para memorial de cálculo</div><h1>Levantamento Predial</h1></div>
+    <div><div class="pill" id="countPill">0 ambientes</div><div id="storageStatus" style="font-size:9px;text-align:right;margin-top:4px;color:#c9d8e4">Verificando salvamento…</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-screen="form">Ambiente</div>
+    <div class="tab" data-screen="legenda">Legendas</div>
+    <div class="tab" data-screen="lista">Lista</div>
+    <div class="tab" data-screen="exportar">Exportar</div>
+  </div>
+</header>
+
+<main>
+<section class="screen active" id="screen-form">
+  <div class="saved show" style="display:block;background:#eef5fb;color:#245b88;border-color:#bfd3e5">Todos os campos são editáveis. Para alterar P1, P2, J1 ou J2, use a aba <b>Legendas</b>.</div>
+  <div class="saved" id="saved">✓ Ambiente salvo</div>
+
+  <div class="card">
+    <div class="cardhead">1. Identificação</div>
+    <div class="cardbody">
+      <div class="field req"><label>Unidade</label><input id="unidade" placeholder="Ex.: USF Cohab Peixinhos"></div>
+      <div class="row2">
+        <div class="field req"><label>Pavimento</label>
+          <select id="pavimento"><option value="">Selecione</option><option>Térreo</option><option>1º Pavimento</option><option>2º Pavimento</option><option>Subsolo</option><option>Cobertura</option><option>Área Externa</option></select>
+        </div>
+        <div class="field req"><label>Código</label><input id="codigo" placeholder="Ex.: AMB-01"></div>
+      </div>
+      <div class="field req"><label>Ambiente</label><input id="ambiente" placeholder="Ex.: Consultório 01"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cardhead" style="background:#245b88">2. Geometria do ambiente</div>
+    <div class="cardbody">
+      <div class="row3">
+        <div class="field req"><label>Comprimento (m)</label><input type="number" step="0.01" inputmode="decimal" id="comp"></div>
+        <div class="field req"><label>Largura (m)</label><input type="number" step="0.01" inputmode="decimal" id="larg"></div>
+        <div class="field req"><label>Pé-direito (m)</label><input type="number" step="0.01" inputmode="decimal" id="pe"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Desconto/Acresc. piso (m²)</label><input type="number" step="0.01" inputmode="decimal" id="ajustePiso" value="0"></div>
+        <div class="field"><label>Desconto/Acresc. teto (m²)</label><input type="number" step="0.01" inputmode="decimal" id="ajusteTeto" value="0"></div>
+      </div>
+      <div class="calcgrid">
+        <div class="calc"><span>Área do piso</span><strong id="cArea">0,00 m²</strong></div>
+        <div class="calc"><span>Perímetro</span><strong id="cPer">0,00 m</strong></div>
+        <div class="calc"><span>Paredes brutas</span><strong id="cParedeBruta">0,00 m²</strong></div>
+        <div class="calc"><span>Volume</span><strong id="cVol">0,00 m³</strong></div>
+      </div>
+      <div class="help">Para ambientes irregulares, utilize as dimensões principais e lance o ajuste positivo ou negativo.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cardhead" style="background:#4c743c">3. Portas por tipologia</div>
+    <div class="cardbody">
+      <div id="portasAmb"></div>
+      <button type="button" class="btn btn-light" style="width:100%" id="addPortaAmb">+ Adicionar tipologia de porta</button>
+      <div class="help">Ex.: P1 = 0,60 × 2,10 m; P2 = 0,70 × 2,10 m. A legenda é cadastrada na aba “Legendas”.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cardhead" style="background:#7a5b20">4. Janelas por tipologia</div>
+    <div class="cardbody">
+      <div id="janelasAmb"></div>
+      <button type="button" class="btn btn-light" style="width:100%" id="addJanelaAmb">+ Adicionar tipologia de janela</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cardhead" style="background:#8b3d3d">5. Revestimentos e acabamentos</div>
+    <div class="cardbody">
+      <div class="row2">
+        <div class="field"><label>Piso</label><select id="pisoTipo"><option>Cerâmica</option><option>Granilite</option><option>Vinílico</option><option>Cimento</option><option>Outro</option></select></div>
+        <div class="field"><label>Forro/Teto</label><select id="tetoTipo"><option>Laje</option><option>PVC</option><option>Gesso</option><option>Mineral</option><option>Sem forro</option><option>Outro</option></select></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Paredes</label><select id="paredeTipo"><option>Pintura</option><option>Cerâmica</option><option>Pintura + cerâmica</option><option>Outro</option></select></div>
+        <div class="field"><label>Altura revestimento (m)</label><input type="number" step="0.01" inputmode="decimal" id="altRev" value="0"></div>
+      </div>
+      <div class="field"><label>Rodapé</label><select id="rodapeTipo"><option>Sem rodapé</option><option>Cerâmico</option><option>Granito</option><option>Vinílico</option><option>Outro</option></select></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cardhead" style="background:#68508d">6. Quantitativos complementares</div>
+    <div class="cardbody">
+      <div class="row2">
+        <div class="field"><label>Luminárias</label><input type="number" min="0" id="lum" value="0"></div>
+        <div class="field"><label>Interruptores</label><input type="number" min="0" id="int" value="0"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Tomadas 10 A</label><input type="number" min="0" id="t10" value="0"></div>
+        <div class="field"><label>Tomadas 20 A</label><input type="number" min="0" id="t20" value="0"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Pontos de água</label><input type="number" min="0" id="agua" value="0"></div>
+        <div class="field"><label>Pontos de esgoto</label><input type="number" min="0" id="esgoto" value="0"></div>
+      </div>
+      <div class="field"><label>Observações</label><textarea id="obs" placeholder="Desníveis, pilares, recortes, detalhes construtivos..."></textarea></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cardhead" style="background:#2f6b6d">7. Memorial automático</div>
+    <div class="cardbody">
+      <div class="calcgrid">
+        <div class="calc"><span>Área de portas</span><strong id="cPortas">0,00 m²</strong></div>
+        <div class="calc"><span>Área de janelas</span><strong id="cJanelas">0,00 m²</strong></div>
+        <div class="calc"><span>Paredes líquidas</span><strong id="cParedeLiq">0,00 m²</strong></div>
+        <div class="calc"><span>Rodapé líquido</span><strong id="cRodape">0,00 m</strong></div>
+        <div class="calc"><span>Área de teto</span><strong id="cTeto">0,00 m²</strong></div>
+        <div class="calc"><span>Revest. parede</span><strong id="cRevParede">0,00 m²</strong></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="screen-legenda">
+  <div class="card">
+    <div class="cardhead">Legenda de portas</div>
+    <div class="cardbody">
+      <div class="help" style="display:grid;grid-template-columns:70px 1fr 62px 62px 38px;gap:7px;margin-bottom:6px"><b>Código</b><b>Descrição</b><b>Larg.</b><b>Alt.</b><span></span></div><div id="portaTipos"></div>
+      <button type="button" class="btn btn-blue" style="width:100%" id="addPortaTipo">+ Nova tipologia de porta</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="cardhead">Legenda de janelas</div>
+    <div class="cardbody">
+      <div class="help" style="display:grid;grid-template-columns:70px 1fr 62px 62px 38px;gap:7px;margin-bottom:6px"><b>Código</b><b>Descrição</b><b>Larg.</b><b>Alt.</b><span></span></div><div id="janelaTipos"></div>
+      <button type="button" class="btn btn-blue" style="width:100%" id="addJanelaTipo">+ Nova tipologia de janela</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="screen-lista">
+  <div id="lista"></div>
+</section>
+
+<section class="screen" id="screen-exportar">
+  <div class="card">
+    <div class="cardhead">Legenda consolidada</div>
+    <div class="cardbody">
+      <div id="legendaExport"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="cardhead">Exportação</div>
+    <div class="cardbody">
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="copyTSV">Copiar para Excel</button>
+        <button type="button" class="btn btn-light" id="downloadCSV">Baixar CSV</button>
+      </div>
+      <div class="actions" style="margin-top:9px">
+        <button type="button" class="btn btn-blue" id="saveProject">Salvar projeto (.json)</button>
+        <button type="button" class="btn btn-light" id="openProject">Abrir projeto</button>
+      </div>
+      <input type="file" id="projectFile" accept="application/json,.json" style="display:none">
+      <textarea id="preview" readonly style="margin-top:10px;height:160px"></textarea>
+    </div>
+  </div>
+  <button type="button" class="btn btn-danger" style="width:100%" id="clearAll">Apagar todos os dados</button>
+</section>
+</main>
+
+<div class="foot" id="foot">
+  <button type="button" class="btn btn-light" id="duplicate">Duplicar último</button>
+  <button type="button" class="btn btn-primary" id="save">Salvar ambiente</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const fmt=n=>(Number(n)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const LS='levantamento_predial_v3';
+const DEFAULT_DB={
+  portas:[
+    {cod:'P1',larg:0.60,alt:2.10,desc:'Porta de abrir'},
+    {cod:'P2',larg:0.70,alt:2.10,desc:'Porta de abrir'},
+    {cod:'P3',larg:0.80,alt:2.10,desc:'Porta de abrir'},
+    {cod:'P4',larg:0.90,alt:2.10,desc:'Porta de abrir'}
+  ],
+  janelas:[
+    {cod:'J1',larg:1.20,alt:1.20,desc:'Janela de correr'},
+    {cod:'J2',larg:1.50,alt:1.20,desc:'Janela de correr'}
+  ],
+  ambientes:[]
+};
+let storageAvailable=false;
+function cloneDefault(){return JSON.parse(JSON.stringify(DEFAULT_DB))}
+function loadDB(){
+  try{
+    const raw=window.localStorage.getItem(LS);
+    storageAvailable=true;
+    return raw?JSON.parse(raw):cloneDefault();
+  }catch(e){
+    console.warn('Armazenamento local indisponível:',e);
+    storageAvailable=false;
+    return cloneDefault();
+  }
+}
+let db=loadDB();
+let editing=null;
+function persist(){
+  try{
+    window.localStorage.setItem(LS,JSON.stringify(db));
+    storageAvailable=true;
+    if($('storageStatus')) $('storageStatus').textContent='Salvamento automático ativo';
+    return true;
+  }catch(e){
+    storageAvailable=false;
+    if($('storageStatus')) $('storageStatus').textContent='Use “Salvar projeto”';
+    return false;
+  }
+}
+const toast=msg=>{let t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600)};
+
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');$('screen-'+t.dataset.screen).classList.add('active');
+  $('foot').style.display=t.dataset.screen==='form'?'flex':'none';
+  if(t.dataset.screen==='legenda')renderTipos();
+  if(t.dataset.screen==='lista')renderLista();
+  if(t.dataset.screen==='exportar')renderExport();
+});
+
+function renderTipos(){
+  const render=(arr,box,prefix)=>{
+    $(box).innerHTML='';
+    arr.forEach((x,i)=>{
+      const d=document.createElement('div');d.className='type-row';
+      d.innerHTML=`<input value="${x.cod}" data-k="cod" title="Código" style="font-weight:900;text-align:center;text-transform:uppercase">
+      <input value="${x.desc||''}" data-k="desc" title="Descrição">
+      <input type="number" step="0.01" value="${x.larg}" data-k="larg" title="Largura (m)">
+      <input type="number" step="0.01" value="${x.alt}" data-k="alt" title="Altura (m)">
+      <button type="button" class="iconbtn" title="Excluir tipologia">🗑️</button>`;
+      d.querySelectorAll('input').forEach(inp=>inp.onchange=()=>{
+        const k=inp.dataset.k;
+        if(k==='cod'){
+          const novo=inp.value.trim().toUpperCase();
+          if(!novo){toast('Informe um código');renderTipos();return}
+          const duplicado=arr.some((item,idx)=>idx!==i && item.cod===novo);
+          if(duplicado){toast('Código já utilizado');renderTipos();return}
+          const antigo=x.cod; x.cod=novo;
+          db.ambientes.forEach(a=>{
+            const lista=prefix==='P'?a.portas:a.janelas;
+            (lista||[]).forEach(it=>{if(it.cod===antigo)it.cod=novo});
+          });
+        }else if(k==='desc'){x[k]=inp.value}else{x[k]=Number(inp.value)||0}
+        persist();renderTipos();calc()
+      });
+      d.querySelector('button').onclick=()=>{if(confirm('Excluir esta tipologia?')){arr.splice(i,1);persist();renderTipos();renderAmbSelectors();calc()}};
+      $(box).appendChild(d);
+    });
+  };
+  render(db.portas,'portaTipos','P'); render(db.janelas,'janelaTipos','J');
+}
+$('addPortaTipo').onclick=()=>{db.portas.push({cod:'P'+(db.portas.length+1),larg:0.80,alt:2.10,desc:'Nova porta'});persist();renderTipos();renderAmbSelectors()};
+$('addJanelaTipo').onclick=()=>{db.janelas.push({cod:'J'+(db.janelas.length+1),larg:1.20,alt:1.20,desc:'Nova janela'});persist();renderTipos();renderAmbSelectors()};
+
+function makeEntry(container,arr,selected='',qtd=1){
+  const row=document.createElement('div');row.className='entry-row';
+  row.innerHTML=`<select>${arr.map(x=>`<option value="${x.cod}" ${x.cod===selected?'selected':''}>${x.cod}</option>`).join('')}</select>
+  <div class="help entry-desc"></div>
+  <input type="number" min="1" value="${qtd}">
+  <button type="button" class="iconbtn">🗑️</button>`;
+  const refresh=()=>{const x=arr.find(a=>a.cod===row.querySelector('select').value);row.querySelector('.entry-desc').textContent=x?`${x.desc} — ${fmt(x.larg)} × ${fmt(x.alt)} m`:'';calc()};
+  row.querySelector('select').onchange=refresh;row.querySelector('input').oninput=calc;
+  row.querySelector('button').onclick=()=>{row.remove();calc()};
+  $(container).appendChild(row);refresh();
+}
+function renderAmbSelectors(){
+  document.querySelectorAll('#portasAmb .entry-row,#janelasAmb .entry-row').forEach(r=>r.remove());
+}
+$('addPortaAmb').onclick=()=>db.portas.length?makeEntry('portasAmb',db.portas):toast('Cadastre uma tipologia de porta');
+$('addJanelaAmb').onclick=()=>db.janelas.length?makeEntry('janelasAmb',db.janelas):toast('Cadastre uma tipologia de janela');
+
+function readEntries(container){
+  return [...document.querySelectorAll(`#${container} .entry-row`)].map(r=>({cod:r.querySelector('select').value,qtd:Number(r.querySelector('input').value)||0}));
+}
+function areaEntries(items,types){
+  return items.reduce((s,i)=>{const t=types.find(x=>x.cod===i.cod);return s+(t?t.larg*t.alt*i.qtd:0)},0)
+}
+function widthEntries(items,types){
+  return items.reduce((s,i)=>{const t=types.find(x=>x.cod===i.cod);return s+(t?t.larg*i.qtd:0)},0)
+}
+function numbers(){
+  return {
+    comp:Number($('comp').value)||0,larg:Number($('larg').value)||0,pe:Number($('pe').value)||0,
+    ajustePiso:Number($('ajustePiso').value)||0,ajusteTeto:Number($('ajusteTeto').value)||0
+  }
+}
+function calc(){
+  const n=numbers(), portas=readEntries('portasAmb'),janelas=readEntries('janelasAmb');
+  const area=Math.max(0,n.comp*n.larg+n.ajustePiso), per=2*(n.comp+n.larg), parede=per*n.pe;
+  const ap=areaEntries(portas,db.portas),aj=areaEntries(janelas,db.janelas);
+  const liq=Math.max(0,parede-ap-aj),rod=Math.max(0,per-widthEntries(portas,db.portas));
+  const teto=Math.max(0,n.comp*n.larg+n.ajusteTeto);
+  const alt=Number($('altRev').value)||0, rev=Math.max(0,per*Math.min(alt,n.pe)-ap-aj);
+  $('cArea').textContent=fmt(area)+' m²';$('cPer').textContent=fmt(per)+' m';$('cParedeBruta').textContent=fmt(parede)+' m²';
+  $('cVol').textContent=fmt(area*n.pe)+' m³';$('cPortas').textContent=fmt(ap)+' m²';$('cJanelas').textContent=fmt(aj)+' m²';
+  $('cParedeLiq').textContent=fmt(liq)+' m²';$('cRodape').textContent=fmt(rod)+' m';$('cTeto').textContent=fmt(teto)+' m²';
+  $('cRevParede').textContent=fmt(rev)+' m²';
+  return {area,per,paredeBruta:parede,areaPortas:ap,areaJanelas:aj,paredeLiquida:liq,rodape:rod,teto,volume:area*n.pe,revestParede:rev}
+}
+['comp','larg','pe','ajustePiso','ajusteTeto','altRev'].forEach(id=>$(id).addEventListener('input',calc));
+
+function formData(){
+  return {
+    unidade:$('unidade').value.trim(),pavimento:$('pavimento').value,codigo:$('codigo').value.trim(),ambiente:$('ambiente').value.trim(),
+    ...numbers(),portas:readEntries('portasAmb'),janelas:readEntries('janelasAmb'),
+    pisoTipo:$('pisoTipo').value,tetoTipo:$('tetoTipo').value,paredeTipo:$('paredeTipo').value,altRev:Number($('altRev').value)||0,rodapeTipo:$('rodapeTipo').value,
+    lum:Number($('lum').value)||0,int:Number($('int').value)||0,t10:Number($('t10').value)||0,t20:Number($('t20').value)||0,
+    agua:Number($('agua').value)||0,esgoto:Number($('esgoto').value)||0,obs:$('obs').value.trim(),calc:calc(),savedAt:Date.now()
+  }
+}
+function clearForm(){
+  ['codigo','ambiente','comp','larg','pe','obs'].forEach(id=>$(id).value='');
+  ['ajustePiso','ajusteTeto','altRev','lum','int','t10','t20','agua','esgoto'].forEach(id=>$(id).value=0);
+  $('portasAmb').innerHTML='';$('janelasAmb').innerHTML='';editing=null;$('save').textContent='Salvar ambiente';calc()
+}
+function fill(d){
+  Object.entries({unidade:d.unidade,pavimento:d.pavimento,codigo:d.codigo,ambiente:d.ambiente,comp:d.comp,larg:d.larg,pe:d.pe,
+    ajustePiso:d.ajustePiso,ajusteTeto:d.ajusteTeto,pisoTipo:d.pisoTipo,tetoTipo:d.tetoTipo,paredeTipo:d.paredeTipo,
+    altRev:d.altRev,rodapeTipo:d.rodapeTipo,lum:d.lum,int:d.int,t10:d.t10,t20:d.t20,agua:d.agua,esgoto:d.esgoto,obs:d.obs})
+  .forEach(([k,v])=>{if($(k))$(k).value=v??''});
+  $('portasAmb').innerHTML='';$('janelasAmb').innerHTML='';
+  (d.portas||[]).forEach(x=>makeEntry('portasAmb',db.portas,x.cod,x.qtd));
+  (d.janelas||[]).forEach(x=>makeEntry('janelasAmb',db.janelas,x.cod,x.qtd));calc()
+}
+$('save').onclick=()=>{
+  const d=formData();
+  if(!d.unidade||!d.pavimento||!d.codigo||!d.ambiente||!d.comp||!d.larg||!d.pe){toast('Preencha os campos obrigatórios');return}
+  if(editing===null)db.ambientes.push(d);else db.ambientes[editing]=d;
+  persist();clearForm();updateCount();$('saved').classList.add('show');setTimeout(()=>$('saved').classList.remove('show'),1800);scrollTo({top:0,behavior:'smooth'})
+};
+$('duplicate').onclick=()=>{
+  if(!db.ambientes.length){toast('Nenhum ambiente salvo');return}
+  fill(db.ambientes[db.ambientes.length-1]);$('codigo').value='';$('ambiente').value='';toast('Dados duplicados')
+};
+function updateCount(){$('countPill').textContent=`${db.ambientes.length} ${db.ambientes.length===1?'ambiente':'ambientes'}`}
+
+function renderLista(){
+  $('lista').innerHTML='';
+  if(!db.ambientes.length){$('lista').innerHTML='<div class="listcard">Nenhum ambiente salvo.</div>';return}
+  db.ambientes.forEach((d,i)=>{
+    const x=document.createElement('div');x.className='listcard';
+    x.innerHTML=`<div class="listtop"><div><div class="listname">${d.codigo} — ${d.ambiente}</div><div class="listsub">${d.unidade} · ${d.pavimento} · ${fmt(d.calc.area)} m²</div></div>
+    <div><button type="button" class="iconbtn edit" title="Editar ambiente">✏️</button><button type="button" class="iconbtn del" title="Excluir ambiente">🗑️</button></div></div>`;
+    x.querySelector('.edit').onclick=()=>{editing=i;fill(d);$('save').textContent='Atualizar ambiente';document.querySelector('[data-screen="form"]').click();scrollTo({top:0})};
+    x.querySelector('.del').onclick=()=>{if(confirm('Excluir este ambiente?')){db.ambientes.splice(i,1);persist();updateCount();renderLista()}};
+    $('lista').appendChild(x)
+  })
+}
+
+function legendHTML(){
+  const table=(title,arr)=>`<h3>${title}</h3><table class="legend"><tr><th>Código</th><th>Descrição</th><th>Dimensão</th></tr>${arr.map(x=>`<tr><td><b>${x.cod}</b></td><td>${x.desc}</td><td>${fmt(x.larg)} × ${fmt(x.alt)} m</td></tr>`).join('')}</table>`;
+  return table('Portas',db.portas)+table('Janelas',db.janelas)
+}
+function rows(){
+  return db.ambientes.map(d=>[
+    d.unidade,d.pavimento,d.codigo,d.ambiente,d.comp,d.larg,d.pe,d.calc.area,d.calc.per,d.calc.paredeBruta,
+    d.portas.map(x=>`${x.cod}:${x.qtd}`).join('; '),d.calc.areaPortas,
+    d.janelas.map(x=>`${x.cod}:${x.qtd}`).join('; '),d.calc.areaJanelas,
+    d.calc.paredeLiquida,d.calc.rodape,d.calc.teto,d.calc.volume,d.calc.revestParede,
+    d.pisoTipo,d.tetoTipo,d.paredeTipo,d.rodapeTipo,d.lum,d.int,d.t10,d.t20,d.agua,d.esgoto,d.obs
+  ])
+}
+const headers=['Unidade','Pavimento','Código','Ambiente','Comprimento','Largura','Pé-direito','Área piso','Perímetro','Paredes brutas','Portas','Área portas','Janelas','Área janelas','Paredes líquidas','Rodapé líquido','Área teto','Volume','Revest. parede','Piso','Teto/Forro','Parede','Rodapé','Luminárias','Interruptores','Tomadas 10A','Tomadas 20A','Água','Esgoto','Observações'];
+function renderExport(){$('legendaExport').innerHTML=legendHTML();$('preview').value=''}
+$('copyTSV').onclick=async()=>{
+  const t=[headers,...rows()].map(r=>r.join('\t')).join('\n');$('preview').value=t;
+  try{await navigator.clipboard.writeText(t);toast('Copiado para o Excel')}catch(e){toast('Copie manualmente a prévia')}
+};
+$('downloadCSV').onclick=()=>{
+  const csv=[headers,...rows()].map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  $('preview').value=csv;const b=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');
+  a.href=u;a.download='levantamento_predial_memorial.csv';a.click();URL.revokeObjectURL(u)
+};
+$('clearAll').onclick=()=>{if(confirm('Apagar todos os ambientes e legendas?')){try{window.localStorage.removeItem(LS)}catch(e){} db=cloneDefault();editing=null;persist();location.reload()}};
+
+
+$('saveProject').onclick=()=>{
+  const payload={version:3,exportedAt:new Date().toISOString(),data:db};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='levantamento_predial_projeto.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  toast('Projeto salvo em arquivo');
+};
+$('openProject').onclick=()=>$('projectFile').click();
+$('projectFile').onchange=async(e)=>{
+  const file=e.target.files&&e.target.files[0];if(!file)return;
+  try{
+    const parsed=JSON.parse(await file.text());
+    const incoming=parsed.data||parsed;
+    if(!incoming||!Array.isArray(incoming.ambientes)||!Array.isArray(incoming.portas)||!Array.isArray(incoming.janelas)) throw new Error('formato inválido');
+    db=incoming;editing=null;persist();renderTipos();updateCount();renderLista();clearForm();toast('Projeto carregado');
+  }catch(err){alert('Não foi possível abrir o projeto. Verifique se o arquivo JSON foi gerado por este formulário.');}
+  e.target.value='';
+};
+
+window.addEventListener('beforeunload',persist);
+persist();renderTipos();updateCount();calc();
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('Falha ao registrar modo offline:', err));
+  });
+}
+</script>
+
+</body>
+</html>
