@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Vistoria de Campo — Levantamento Estrutural</title>
+<style>
+  :root{
+    --paper:#EEF2F5; --grid:#DCE4EA; --ink:#16324A; --ink-soft:#4C6478;
+    --blue:#1B3A5C; --blue-deep:#0F2740; --orange:#E2672A; --orange-deep:#C24F19;
+    --green:#2F855A; --green-deep:#236B47; --line:#C7D2DB; --ok:#2E7D4F; --white:#FFFFFF;
+    --card-radius:10px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0/24px 24px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/24px 24px,
+      var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100vh; padding-bottom:100px;
+  }
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  header{position:sticky; top:0; z-index:20; background:var(--blue); color:#fff; padding:14px 16px 12px; box-shadow:0 2px 10px rgba(15,39,64,.25);}
+  header .eyebrow{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:#AFC4D8; margin-bottom:2px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  header h1{margin:0; font-size:19px; font-weight:700; letter-spacing:-.01em;}
+  .headerRow{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .countPill{background:var(--orange); color:#fff; font-weight:700; font-size:13px; padding:6px 12px; border-radius:999px; white-space:nowrap; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  .tabs{display:flex; gap:0; margin-top:12px; background:rgba(255,255,255,.1); border-radius:8px; padding:3px;}
+  .tab{flex:1; text-align:center; padding:8px 4px; font-size:12.5px; font-weight:600; border-radius:6px; color:#CBDAE6; cursor:pointer; user-select:none;}
+  .tab.active{background:#fff; color:var(--blue-deep);}
+  main{padding:14px 14px 0;}
+  .screen{display:none;}
+  .screen.active{display:block;}
+  .card{background:var(--white); border:1px solid var(--line); border-radius:var(--card-radius); margin-bottom:14px; overflow:hidden;}
+  .sectionHead{display:flex; align-items:center; gap:10px; padding:12px 14px; background:var(--blue-deep); color:#fff;}
+  .sectionHead .num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px; font-weight:700; background:rgba(255,255,255,.16); width:22px;height:22px;border-radius:5px; display:flex;align-items:center;justify-content:center; flex-shrink:0;}
+  .sectionHead h2{margin:0; font-size:13.5px; font-weight:700; letter-spacing:.01em; text-transform:uppercase;}
+  .sectionBody{padding:12px 14px 6px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:5px; text-transform:uppercase; letter-spacing:.02em;}
+  .field input[type=text], .field input[type=number], .field select, .field textarea{width:100%; font-size:16px; padding:11px 12px; border:1.5px solid var(--line); border-radius:8px; background:#FBFCFD; color:var(--ink); font-family:inherit;}
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--blue); background:#fff;}
+  .field textarea{resize:vertical; min-height:54px;}
+  .req label::after{content:" *"; color:var(--orange-deep);}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;}
+  .stepper{display:flex; align-items:center; justify-content:space-between; border:1.5px solid var(--line); border-radius:8px; background:#FBFCFD; overflow:hidden;}
+  .stepper button{width:46px; height:46px; border:none; background:var(--blue); color:#fff; font-size:20px; font-weight:700; cursor:pointer;}
+  .stepper button:active{background:var(--blue-deep);}
+  .stepper button.minus{background:#7A8CA0;}
+  .stepper button.minus:active{background:var(--ink-soft);}
+  .stepper .val{flex:1; text-align:center; font-size:19px; font-weight:700; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  .chipRow{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{padding:9px 13px; border-radius:999px; border:1.5px solid var(--line); background:#FBFCFD; font-size:13px; font-weight:600; color:var(--ink-soft); cursor:pointer;}
+  .chip.selected{background:var(--blue); border-color:var(--blue); color:#fff;}
+  .chip.selected.green{background:var(--green); border-color:var(--green);}
+  .foot-actions{position:fixed; bottom:0; left:0; right:0; z-index:20; background:#fff; border-top:1px solid var(--line); padding:10px 14px calc(10px + env(safe-area-inset-bottom)); display:flex; gap:10px; box-shadow:0 -4px 14px rgba(15,39,64,.10);}
+  .btn{flex:1; padding:14px; border-radius:9px; border:none; font-size:15px; font-weight:700; cursor:pointer; text-align:center;}
+  .btn-primary{background:var(--orange); color:#fff;}
+  .btn-primary:active{background:var(--orange-deep);}
+  .btn-green{background:var(--green); color:#fff;}
+  .btn-green:active{background:var(--green-deep);}
+  .btn-ghost{background:#EEF2F5; color:var(--ink); border:1.5px solid var(--line);}
+  .btn-ghost:active{background:var(--grid);}
+  .btn-outline-green{background:#fff; color:var(--green-deep); border:1.5px dashed var(--green);}
+  .listCard{background:var(--white); border:1px solid var(--line); border-radius:var(--card-radius); padding:12px 14px; margin-bottom:10px; display:flex; align-items:center; gap:12px;}
+  .listCard .idx{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:700; font-size:13px; color:#fff; background:var(--blue); width:28px;height:28px;border-radius:6px; flex-shrink:0; display:flex; align-items:center; justify-content:center;}
+  .listCard .meta{flex:1; min-width:0;}
+  .listCard .meta .name{font-weight:700; font-size:14.5px; color:var(--ink);}
+  .listCard .meta .sub{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+  .listCard .acts{display:flex; gap:6px; flex-shrink:0;}
+  .iconbtn{width:34px; height:34px; border-radius:7px; border:1.5px solid var(--line); background:#FBFCFD; font-size:15px; display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .empty{text-align:center; padding:50px 20px; color:var(--ink-soft);}
+  .empty .big{font-size:34px; margin-bottom:8px;}
+  .empty p{font-size:13.5px; line-height:1.5; margin:6px 0 0;}
+  .exportBox{background:var(--white); border:1px solid var(--line); border-radius:var(--card-radius); padding:14px; margin-bottom:14px;}
+  .exportBox h3{margin:0 0 6px; font-size:14px;}
+  .exportBox p{margin:0 0 12px; font-size:12.5px; color:var(--ink-soft); line-height:1.5;}
+  .toast{position:fixed; bottom:96px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:10px 18px; border-radius:999px; font-size:13px; font-weight:600; z-index:50; opacity:0; pointer-events:none; transition:opacity .2s;}
+  .toast.show{opacity:1;}
+  .savedBanner{display:none; align-items:center; gap:8px; background:#E7F4EC; color:var(--ok); border:1px solid #BFE3CC; border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:13px; font-weight:600;}
+  .savedBanner.show{display:flex;}
+  textarea.csvOut{width:100%; height:120px; font-size:11px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; border:1.5px solid var(--line); border-radius:8px; padding:10px; background:#FBFCFD; color:var(--ink-soft);}
+
+  /* --- Paredes: lista --- */
+  .summaryStrip{display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; background:#EAF3EE; border:1.5px solid #BFE3CC; border-radius:9px; padding:10px 8px; margin-bottom:12px;}
+  .summaryStrip .item{text-align:center;}
+  .summaryStrip .item .v{font-size:15px; font-weight:800; color:var(--green-deep); font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  .summaryStrip .item .l{font-size:8.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.02em; margin-top:1px;}
+  .wallRow{border:1.5px solid var(--line); border-radius:9px; padding:10px 12px; margin-bottom:9px; display:flex; align-items:center; gap:10px;}
+  .wallRow .tag{background:var(--green); color:#fff; width:26px;height:26px;border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; flex-shrink:0;}
+  .wallRow .info{flex:1; min-width:0;}
+  .wallRow .info .l1{font-size:13.5px; font-weight:700; color:var(--ink);}
+  .wallRow .info .l2{font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
+  .wallRow .badges{display:flex; gap:4px; margin-top:4px;}
+  .badge{font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:#EAF3EE; color:var(--green-deep);}
+  .badge.off{background:#F1F3F5; color:#9AA7B2;}
+  .addWallBtn{width:100%; padding:14px; border-radius:9px; border:1.5px dashed var(--green); background:#F3FAF6; color:var(--green-deep); font-weight:700; font-size:14px; cursor:pointer; margin-bottom:6px;}
+
+  /* --- Linhas de porta/janela (múltiplas por parede) --- */
+  .vaoRow{border:1.5px solid var(--line); border-radius:8px; padding:8px 10px; margin-bottom:8px; background:#FBFCFD;}
+  .vaoRowHead{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;}
+  .vaoRowHead .stepper{width:120px;}
+  .vaoRowHead .stepper button{width:34px; height:34px; font-size:16px;}
+  .vaoRowHead .stepper .val{font-size:15px;}
+  .vaoRowRemove{width:32px; height:32px; border-radius:7px; border:1.5px solid #E3B8B8; background:#FDF2F2; color:#A03636; font-size:14px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;}
+  .chipRow.small .chip{padding:6px 10px; font-size:12px;}
+  .vaoEmpty{font-size:12.5px; color:var(--ink-soft); padding:6px 2px 10px;}
+
+  /* --- Editor de parede (painel) --- */
+  .wallEditor{display:none; border:2px solid var(--green); border-radius:10px; margin-top:10px; overflow:hidden; background:#FBFEFC;}
+  .wallEditor.show{display:block;}
+  .wallEditor .weHead{background:var(--green); color:#fff; padding:10px 14px; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:.02em;}
+  .wallEditor .weBody{padding:14px;}
+  .toggleQ{margin-bottom:12px;}
+  .toggleQ .qtext{font-size:13px; font-weight:700; color:var(--ink); margin-bottom:8px;}
+  .subBlock{background:#F7F9FA; border-radius:8px; padding:10px; margin-top:8px; margin-bottom:4px;}
+  .weCalc{background:#EAF3EE; border-radius:8px; padding:10px 12px; margin-top:10px; margin-bottom:12px; font-size:12.5px; color:var(--green-deep); font-weight:600; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  .weActions{display:flex; gap:8px; padding:0 14px 14px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="headerRow">
+    <div>
+      <div class="eyebrow">Levantamento Estrutural · Campo</div>
+      <h1>Vistoria do Prédio</h1>
+    </div>
+    <div class="countPill" id="countPill">0 salvos</div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-screen="form">+ Novo Ambiente</div>
+    <div class="tab" data-screen="list">Lista</div>
+    <div class="tab" data-screen="export">Exportar</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ===================== FORM SCREEN ===================== -->
+  <section class="screen active" id="screen-form">
+
+    <div class="savedBanner" id="savedBanner">✓ Ambiente salvo — pronto para o próximo</div>
+
+    <div class="card">
+      <div class="sectionHead"><div class="num">1</div><h2>Dados Gerais</h2></div>
+      <div class="sectionBody">
+        <div class="field req">
+          <label>Unidade (imóvel/prédio)</label>
+          <input type="text" id="f_unidade" placeholder="Ex.: Sede Administrativa - Rua das Flores, 123">
+          <div class="chipRow" id="chip_unidadeSugestoes" style="margin-top:8px;"></div>
+        </div>
+        <div class="field req">
+          <label>Situação do imóvel</label>
+          <div class="chipRow" id="chip_situacao">
+            <div class="chip" data-v="Próprio">Próprio</div><div class="chip" data-v="Alugado">Alugado</div>
+            <div class="chip" data-v="Cedido">Cedido</div><div class="chip" data-v="Concessão">Concessão</div>
+          </div>
+        </div>
+        <div class="field req">
+          <label>Pavimento</label>
+          <select id="f_pavimento">
+            <option value="">Selecione…</option>
+            <option>Térreo</option><option>1º Pavimento</option><option>2º Pavimento</option>
+            <option>3º Pavimento</option><option>Subsolo</option><option>Cobertura</option><option>Área Externa</option>
+          </select>
+        </div>
+        <div class="field req">
+          <label>Ambiente / Cômodo</label>
+          <input type="text" id="f_ambiente" placeholder="Ex.: Consultório 01">
+        </div>
+        <div class="field">
+          <label>Uso do Ambiente</label>
+          <div class="chipRow" id="chip_uso">
+            <div class="chip">Área Externa</div><div class="chip">Estacionamento</div><div class="chip">Recepção</div>
+            <div class="chip">Circulação</div><div class="chip">Sala do Médico</div><div class="chip">Sala da Enfermagem</div>
+            <div class="chip">Sala de Vacina</div><div class="chip">Sala de Curativo</div><div class="chip">DML</div>
+            <div class="chip">Copa</div><div class="chip">Repouso</div><div class="chip">Odontologia</div><div class="chip">Outros</div>
+          </div>
+          <input type="text" id="f_uso" placeholder="ou digite outro uso" style="margin-top:8px;">
+        </div>
+        <div class="row2">
+          <div class="field req">
+            <label>Comprimento do ambiente (m)</label>
+            <input type="number" inputmode="decimal" id="f_comprimentoAmb" placeholder="0.00" oninput="onDimAmbienteChange()">
+          </div>
+          <div class="field req">
+            <label>Largura do ambiente (m)</label>
+            <input type="number" inputmode="decimal" id="f_larguraAmb" placeholder="0.00" oninput="onDimAmbienteChange()">
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Área calculada (m²)</label>
+            <input type="text" id="f_areaCalc" value="0.00" disabled style="background:#EAF3EE; color:var(--green-deep); font-weight:700;">
+          </div>
+          <div class="field req">
+            <label>Pé-direito (m)</label>
+            <input type="number" inputmode="decimal" id="f_pedireito" placeholder="0.00" oninput="onPeDireitoChange()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sectionHead" style="background:#2E5C8A;"><div class="num">2</div><h2>Estrutura / Acabamentos</h2></div>
+      <div class="sectionBody">
+        <div class="field"><label>Piso (material)</label>
+          <div class="chipRow" id="chip_piso">
+            <div class="chip">PVC</div><div class="chip">Cerâmica</div><div class="chip">Porcelanato</div>
+            <div class="chip">Granito</div><div class="chip">Cimento Queimado</div><div class="chip">Outro</div>
+          </div>
+          <input type="text" id="f_piso" placeholder="material do piso" style="margin-top:8px;">
+        </div>
+        <div class="field"><label>Paredes (material)</label>
+          <div class="chipRow" id="chip_paredesObs">
+            <div class="chip">Alvenaria/Reboco</div><div class="chip">Drywall</div><div class="chip">Revestimento</div>
+            <div class="chip">Granito</div><div class="chip">Outro</div>
+          </div>
+          <input type="text" id="f_paredesObs" placeholder="material das paredes" style="margin-top:8px;">
+        </div>
+        <div class="field"><label>Teto/Forro (material)</label>
+          <div class="chipRow" id="chip_teto">
+            <div class="chip">Laje Aparente</div><div class="chip">PVC</div><div class="chip">Gesso</div>
+            <div class="chip">Mineral</div><div class="chip">Madeira</div><div class="chip">Outro</div>
+          </div>
+          <input type="text" id="f_teto" placeholder="material do teto/forro" style="margin-top:8px;">
+        </div>
+        <div class="field"><label>Estrutura aparente (obs.)</label><input type="text" id="f_estrutura" placeholder="Pilar/viga aparente, obs."></div>
+        <div class="field"><label>Patologias / danos estruturais</label><textarea id="f_patologia" placeholder="Fissuras, infiltrações, corrosão..."></textarea></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sectionHead" style="background:#2F855A;"><div class="num">3</div><h2>Paredes · Pintura e Revestimento</h2></div>
+      <div class="sectionBody">
+        <div class="summaryStrip">
+          <div class="item"><div class="v" id="sumParedes">0</div><div class="l">Paredes</div></div>
+          <div class="item"><div class="v" id="sumPintura">0.00</div><div class="l">m² Pintura</div></div>
+          <div class="item"><div class="v" id="sumRevest">0.00</div><div class="l">m² Revest.</div></div>
+          <div class="item"><div class="v" id="sumVaos">0</div><div class="l">Portas+Janelas</div></div>
+        </div>
+
+        <div id="wallsListContainer"></div>
+        <div class="empty" id="wallsEmpty" style="padding:22px 10px; display:none;">
+          <p style="margin:0;">Nenhuma parede adicionada. Toque em "Adicionar Parede" para começar a registrar.</p>
+        </div>
+
+        <button type="button" class="addWallBtn" id="btnAddWall">+ Adicionar Parede</button>
+
+        <!-- Painel de edição/criação de parede -->
+        <div class="wallEditor" id="wallEditor">
+          <div class="weHead" id="weTitle">Nova Parede</div>
+          <div class="weBody">
+            <div class="field">
+              <label>Nome da parede (opcional)</label>
+              <input type="text" id="we_nome" placeholder="Ex.: Parede Norte, Parede da Entrada — em branco vira 'Parede N'">
+            </div>
+            <div class="row2">
+              <div class="field req">
+                <label>Comprimento (m)</label>
+                <input type="number" inputmode="decimal" id="we_comprimento" placeholder="0.00">
+              </div>
+              <div class="field req">
+                <label>Altura da parede (m)</label>
+                <input type="number" inputmode="decimal" id="we_alturaParede" placeholder="0.00">
+              </div>
+            </div>
+
+            <div class="toggleQ">
+              <div class="qtext">Portas nesta parede</div>
+              <div id="we_portasContainer"></div>
+              <button type="button" class="btn-outline-green" id="we_addPorta" style="width:100%; padding:10px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">+ Adicionar porta</button>
+            </div>
+
+            <div class="toggleQ">
+              <div class="qtext">Janelas nesta parede</div>
+              <div id="we_janelasContainer"></div>
+              <button type="button" class="btn-outline-green" id="we_addJanela" style="width:100%; padding:10px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">+ Adicionar janela</button>
+            </div>
+
+            <div class="toggleQ">
+              <div class="qtext">Esta parede tem revestimento (azulejo/porcelanato)?</div>
+              <div class="chipRow" id="we_chip_revest">
+                <div class="chip" data-v="nao">Não</div><div class="chip" data-v="sim">Sim</div>
+              </div>
+              <div class="subBlock" id="we_revestBlock" style="display:none;">
+                <div class="row2">
+                  <div class="field" style="margin-bottom:0;"><label>Altura (m)</label><input type="number" inputmode="decimal" id="we_alturaRevest" placeholder="1.20"></div>
+                  <div class="field" style="margin-bottom:0;"><label>Tipo</label><input type="text" id="we_tipoRevest" placeholder="Azulejo 20x20"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="field" style="margin-bottom:6px;"><label>Observações</label><input type="text" id="we_obs" placeholder="opcional"></div>
+
+            <div class="weCalc" id="weCalc">Área da parede: 0.00 m² · Vãos: 0.00 m² · Revestimento: 0.00 m² · Pintura: 0.00 m²</div>
+          </div>
+          <div class="weActions">
+            <button type="button" class="btn btn-ghost" id="btnCancelWall">Cancelar</button>
+            <button type="button" class="btn btn-green" id="btnSaveWall">✓ Salvar parede</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sectionHead" style="background:#B07A12;"><div class="num">4</div><h2>Instalações Elétricas</h2></div>
+      <div class="sectionBody">
+        <div class="row2">
+          <div class="field"><label>Luminárias/Plafons</label>
+            <div class="stepper"><button class="minus" data-target="f_luminariasQtd">−</button><div class="val" id="f_luminariasQtd">0</div><button class="plus" data-target="f_luminariasQtd">+</button></div>
+          </div>
+          <div class="field"><label>Tipo de luminária</label>
+            <select id="f_luminariasTipo">
+              <option value="">Selecione…</option>
+              <option>Plafon</option><option>Calha</option><option>Spot</option><option>Arandela</option>
+              <option>Pendente</option><option>Refletor</option><option>Painel LED de Embutir</option><option>Outro</option>
+            </select>
+          </div>
+        </div>
+        <div class="row3">
+          <div class="field"><label>Lâmpadas</label>
+            <div class="stepper"><button class="minus" data-target="f_lampadasQtd">−</button><div class="val" id="f_lampadasQtd">0</div><button class="plus" data-target="f_lampadasQtd">+</button></div>
+          </div>
+          <div class="field"><label>Tipo de lâmpada</label>
+            <select id="f_lampadasTipo">
+              <option value="">Selecione…</option>
+              <option>LED</option><option>Fluorescente Tubular</option><option>Fluorescente Compacta</option>
+              <option>Incandescente</option><option>Halógena</option><option>Outro</option>
+            </select>
+          </div>
+          <div class="field"><label>Potência (W)</label><input type="number" inputmode="decimal" id="f_lampadasPotencia" placeholder="9"></div>
+        </div>
+        <div class="row3">
+          <div class="field"><label>Tomadas</label>
+            <div class="stepper"><button class="minus" data-target="f_tomadasQtd">−</button><div class="val" id="f_tomadasQtd">0</div><button class="plus" data-target="f_tomadasQtd">+</button></div>
+          </div>
+          <div class="field"><label>Instalação</label>
+            <select id="f_tomadasInstalacao">
+              <option value="">Selecione…</option>
+              <option>Embutir</option><option>Sobrepor</option><option>Ambos</option>
+            </select>
+          </div>
+          <div class="field"><label>Capacidade</label>
+            <select id="f_tomadasCapacidade">
+              <option value="">Selecione…</option>
+              <option>10A</option><option>16A</option><option>20A</option><option>32A</option><option>Outro</option>
+            </select>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Interruptores simples</label>
+            <div class="stepper"><button class="minus" data-target="f_interruptoresSimples">−</button><div class="val" id="f_interruptoresSimples">0</div><button class="plus" data-target="f_interruptoresSimples">+</button></div>
+          </div>
+          <div class="field"><label>Interruptores paralelo/intermed.</label>
+            <div class="stepper"><button class="minus" data-target="f_interruptoresParalelo">−</button><div class="val" id="f_interruptoresParalelo">0</div><button class="plus" data-target="f_interruptoresParalelo">+</button></div>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Pontos de rede (RJ45)</label>
+            <div class="stepper"><button class="minus" data-target="f_pontosRede">−</button><div class="val" id="f_pontosRede">0</div><button class="plus" data-target="f_pontosRede">+</button></div>
+          </div>
+          <div class="field"><label>Pontos de telefonia</label>
+            <div class="stepper"><button class="minus" data-target="f_pontosTelefonia">−</button><div class="val" id="f_pontosTelefonia">0</div><button class="plus" data-target="f_pontosTelefonia">+</button></div>
+          </div>
+        </div>
+        <div class="field"><label>Circuitos no ambiente</label>
+          <div class="stepper"><button class="minus" data-target="f_circuitos">−</button><div class="val" id="f_circuitos">0</div><button class="plus" data-target="f_circuitos">+</button></div>
+        </div>
+        <div class="row3">
+          <div class="field"><label>Disjuntor (A)</label><input type="number" inputmode="decimal" id="f_disjuntor" placeholder="20"></div>
+          <div class="field"><label>Fase do disjuntor</label>
+            <select id="f_disjuntorFase">
+              <option value="">Selecione…</option>
+              <option>Monofásico</option><option>Bifásico</option><option>Trifásico</option>
+            </select>
+          </div>
+          <div class="field"><label>Seção do cabo (mm²)</label><input type="number" inputmode="decimal" id="f_secaoCabo" placeholder="2.5"></div>
+        </div>
+        <div class="field"><label>Aterramento</label>
+          <div class="chipRow" id="chip_aterramento">
+            <div class="chip" data-v="Sim">Sim</div><div class="chip" data-v="Não">Não</div>
+          </div>
+        </div>
+        <div class="field"><label>Quadro elétrico (obs.)</label><input type="text" id="f_quadro" placeholder="QDC-02, circuito 7 e 8…"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sectionHead" style="background:#A03636;"><div class="num">5</div><h2>Hidrossanitárias</h2></div>
+      <div class="sectionBody">
+        <div class="row2">
+          <div class="field"><label>Água fria</label>
+            <div class="stepper"><button class="minus" data-target="f_aguaFria">−</button><div class="val" id="f_aguaFria">0</div><button class="plus" data-target="f_aguaFria">+</button></div>
+          </div>
+          <div class="field"><label>Água quente</label>
+            <div class="stepper"><button class="minus" data-target="f_aguaQuente">−</button><div class="val" id="f_aguaQuente">0</div><button class="plus" data-target="f_aguaQuente">+</button></div>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Pontos de esgoto</label>
+            <div class="stepper"><button class="minus" data-target="f_esgoto">−</button><div class="val" id="f_esgoto">0</div><button class="plus" data-target="f_esgoto">+</button></div>
+          </div>
+          <div class="field"><label>Ralos/caixas</label>
+            <div class="stepper"><button class="minus" data-target="f_ralos">−</button><div class="val" id="f_ralos">0</div><button class="plus" data-target="f_ralos">+</button></div>
+          </div>
+        </div>
+        <div class="field"><label>Louças sanitárias (qtd./tipo — vaso, mictório)</label><input type="text" id="f_loucas" placeholder="1 vaso, 1 mictório…"></div>
+
+        <div class="field"><label>Torneira</label>
+          <div class="chipRow" id="chip_torneira">
+            <div class="chip" data-v="Sim">Sim</div><div class="chip" data-v="Não">Não</div>
+          </div>
+        </div>
+        <div class="field" id="blocoTipoTorneira" style="display:none;">
+          <label>Tipo de torneira</label>
+          <div class="chipRow" id="chip_tipoTorneira">
+            <div class="chip">Convencional</div><div class="chip">Com Arejador</div><div class="chip">Misturador Monocomando</div>
+            <div class="chip">Automática/Sensor</div><div class="chip">Outro</div>
+          </div>
+        </div>
+
+        <div class="field"><label>Lavabo/Lavatório</label>
+          <div class="chipRow" id="chip_lavabo">
+            <div class="chip" data-v="Sim">Sim</div><div class="chip" data-v="Não">Não</div>
+          </div>
+        </div>
+        <div class="field" id="blocoTipoLavabo" style="display:none;">
+          <label>Tipo de lavabo</label>
+          <div class="chipRow" id="chip_tipoLavabo">
+            <div class="chip">Louça Branca</div><div class="chip">Cuba de Apoio</div><div class="chip">Cuba Esculpida</div>
+            <div class="chip">Suspenso</div><div class="chip">Coluna</div><div class="chip">Outro</div>
+          </div>
+        </div>
+
+        <div class="field"><label>Chuveiro</label>
+          <div class="chipRow" id="chip_chuveiro">
+            <div class="chip" data-v="Sim">Sim</div><div class="chip" data-v="Não">Não</div>
+          </div>
+        </div>
+        <div class="field" id="blocoTipoChuveiro" style="display:none;">
+          <label>Tipo de chuveiro</label>
+          <div class="chipRow" id="chip_tipoChuveiro">
+            <div class="chip">Elétrico</div><div class="chip">Ducha Higiênica</div><div class="chip">Registro com Ducha</div><div class="chip">Outro</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sectionHead" style="background:#6A3D96;"><div class="num">6</div><h2>Outras Informações</h2></div>
+
+      <div class="sectionBody">
+        <div class="field"><label>Especificação de pintura (tipo/cor)</label><input type="text" id="f_especPintura" placeholder="Látex acrílico fosco - branco gelo"></div>
+        <div class="field"><label>Climatização (qtd./tipo)</label><input type="text" id="f_clima" placeholder="1 split…"></div>
+        <div class="field"><label>Combate a incêndio</label><input type="text" id="f_incendio" placeholder="1 extintor PQS…"></div>
+        <div class="field"><label>Acessibilidade (NBR 9050)</label><input type="text" id="f_acessibilidade" placeholder="Rota livre, barras de apoio…"></div>
+        <div class="field">
+          <label>Toldo de cobertura (unidade)</label>
+          <div class="chipRow" id="chip_toldo">
+            <div class="chip" data-v="Sim">Sim</div><div class="chip" data-v="Não">Não</div>
+          </div>
+        </div>
+        <div class="subBlock" id="toldoBlock" style="display:none;">
+          <div class="row2">
+            <div class="field" style="margin-bottom:0;"><label>Área do toldo (m²)</label><input type="number" inputmode="decimal" id="f_areaToldo" placeholder="0.00"></div>
+            <div class="field" style="margin-bottom:0;">
+              <label>Material</label>
+              <div class="chipRow" id="chip_materialToldo">
+                <div class="chip">Lona</div><div class="chip">Policarbonato</div><div class="chip">Metálico</div><div class="chip">Outro</div>
+              </div>
+              <input type="text" id="f_materialToldo" placeholder="material do toldo" style="margin-top:8px;">
+            </div>
+          </div>
+        </div>
+        <div class="field req">
+          <label>Estado de conservação geral</label>
+          <div class="chipRow" id="chip_estado">
+            <div class="chip" data-v="Bom">Bom</div><div class="chip" data-v="Regular">Regular</div>
+            <div class="chip" data-v="Ruim">Ruim</div><div class="chip" data-v="Não se aplica">N/A</div>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Registro fotográfico</label><input type="text" id="f_foto" placeholder="FOTO-001"></div>
+          <div class="field"><label>&nbsp;</label><button type="button" class="btn btn-ghost" id="btnAutoFoto" style="width:100%; margin-top:0;">Gerar código</button></div>
+        </div>
+        <div class="field"><label>Observações gerais</label><textarea id="f_obs" placeholder="Qualquer informação relevante…"></textarea></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ===================== LIST SCREEN ===================== -->
+  <section class="screen" id="screen-list">
+    <div id="listContainer"></div>
+    <div class="empty" id="listEmpty" style="display:none;">
+      <div class="big">🏗️</div>
+      <p>Nenhum ambiente salvo ainda.<br>Toque em <strong>+ Novo Ambiente</strong> para começar.</p>
+    </div>
+  </section>
+
+  <!-- ===================== EXPORT SCREEN ===================== -->
+  <section class="screen" id="screen-export">
+    <div class="exportBox">
+      <h3>1 · Colar na aba "Levantamento"</h3>
+      <p>Copia os dados gerais de cada ambiente. Na planilha, clique na célula <strong>B4</strong> da aba "Levantamento" e cole. <strong>Não apague a linha 3 (exemplo)</strong> — ela precisa continuar com Cód. 1 para a numeração bater com as abas Paredes e Vãos.</p>
+      <button class="btn btn-primary" id="btnCopyLev" style="width:100%;">📋 Copiar Levantamento</button>
+    </div>
+    <div class="exportBox">
+      <h3>2 · Colar na aba "Paredes"</h3>
+      <p>Copia uma linha por parede (nome, comprimento, altura própria, revestimento). Na planilha, clique na célula <strong>A7</strong> da aba "Paredes" e cole.</p>
+      <button class="btn btn-primary" id="btnCopyParedes" style="width:100%;">📋 Copiar Paredes</button>
+    </div>
+    <div class="exportBox">
+      <h3>3 · Colar na aba "Vãos"</h3>
+      <p>Copia uma linha para CADA porta ou janela salva (suporta quantas dimensões diferentes por parede você precisar). Na planilha, clique na célula <strong>A6</strong> da aba "Vãos" e cole.</p>
+      <button class="btn btn-primary" id="btnCopyVaos" style="width:100%;">📋 Copiar Vãos</button>
+    </div>
+    <div class="exportBox">
+      <h3>Baixar arquivos .csv (backup)</h3>
+      <p>Gera arquivos separados por vírgulas com todos os dados salvos, incluindo cabeçalho.</p>
+      <div class="row3">
+        <button class="btn btn-ghost" id="btnDownloadLev">⬇️ Levantamento.csv</button>
+        <button class="btn btn-ghost" id="btnDownloadParedes">⬇️ Paredes.csv</button>
+        <button class="btn btn-ghost" id="btnDownloadVaos">⬇️ Vãos.csv</button>
+      </div>
+    </div>
+    <div class="exportBox">
+      <h3>Pré-visualização</h3>
+      <textarea class="csvOut" id="csvOut" readonly placeholder="Os dados aparecem aqui ao copiar ou baixar…"></textarea>
+    </div>
+    <div class="exportBox">
+      <h3 style="color:#A03636;">Limpar todos os dados</h3>
+      <p>Remove permanentemente todos os ambientes salvos neste dispositivo. Use somente após confirmar que já exportou tudo.</p>
+      <button class="btn btn-ghost" id="btnClearAll" style="width:100%; color:#A03636; border-color:#E3B8B8;">🗑️ Apagar tudo</button>
+    </div>
+  </section>
+
+</main>
+
+<div class="foot-actions" id="footForm">
+  <button class="btn btn-ghost" id="btnDuplicar">Duplicar último</button>
+  <button class="btn btn-primary" id="btnSalvar">✓ Salvar ambiente</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  // Ordem EXATA das colunas manuais da aba "Levantamento" da planilha oficial (v6).
+  // Não inclui Área do Ambiente: agora é 100% calculada no Excel a partir de
+  // Comprimento x Largura, então não entra na colagem.
+  const COLS_LEV = [
+    ['unidade','Unidade'],['situacao','Situação'],
+    ['pavimento','Pavimento'],['ambiente','Ambiente / Cômodo'],['uso','Uso do Ambiente'],
+    ['comprimentoAmb','Comprimento do Ambiente (m)'],['larguraAmb','Largura do Ambiente (m)'],['pedireito','Pé-direito (m)'],
+    ['piso','Piso (material)'],['paredesObs','Paredes (material)'],['teto','Teto/Forro (material)'],
+    ['estrutura','Estrutura Aparente'],['patologia','Patologias/Danos'],
+    ['luminariasQtd','Luminárias Qtd'],['luminariasTipo','Luminárias Tipo'],
+    ['lampadasQtd','Lâmpadas Qtd'],['lampadasTipo','Lâmpadas Tipo'],['lampadasPotencia','Lâmpadas Potência (W)'],
+    ['tomadasQtd','Tomadas Qtd'],['tomadasInstalacao','Tomadas Instalação'],['tomadasCapacidade','Tomadas Capacidade'],
+    ['interruptoresSimples','Interruptores Simples'],['interruptoresParalelo','Interruptores Paralelo'],
+    ['circuitos','Circuitos'],['disjuntor','Disjuntor (A)'],['disjuntorFase','Disjuntor Fase'],['secaoCabo','Seção do Cabo (mm²)'],
+    ['aterramento','Aterramento'],['pontosRede','Pontos de Rede'],['pontosTelefonia','Pontos de Telefonia'],
+    ['quadro','Quadro Elétrico'],
+    ['aguaFria','Água Fria'],['aguaQuente','Água Quente'],['esgoto','Esgoto'],['ralos','Ralos'],['loucas','Louças Sanitárias'],
+    ['temTorneira','Torneira'],['tipoTorneira','Tipo de Torneira'],
+    ['temLavabo','Lavabo/Lavatório'],['tipoLavabo','Tipo de Lavabo'],
+    ['temChuveiro','Chuveiro'],['tipoChuveiro','Tipo de Chuveiro'],
+    ['especPintura','Especificação de Pintura'],['clima','Climatização'],['incendio','Combate a Incêndio'],
+    ['acessibilidade','Acessibilidade'],['temToldo','Toldo de Cobertura'],['areaToldo','Área do Toldo (m²)'],['materialToldo','Material do Toldo'],
+    ['estado','Estado de Conservação'],['foto','Registro Fotográfico'],['obs','Observações Gerais']
+  ];
+  // Aba "Paredes" (v6): só campos manuais — as áreas agora são calculadas no
+  // Excel a partir da aba "Vãos", então não são mais exportadas aqui.
+  const COLS_PAREDES = [
+    ['cod','Cód. Ambiente'],['nome','Nome da Parede'],['parede','Parede Nº'],
+    ['comprimento','Comprimento (m)'],['alturaParede','Altura da Parede (m)'],
+    ['alturaRevest','Altura de Revestimento (m)'],['tipoRevest','Tipo de Revestimento'],['obs','Observações']
+  ];
+  // Aba "Vãos" (nova, v6): uma porta ou janela por linha.
+  const COLS_VAOS = [
+    ['cod','Cód. Ambiente'],['parede','Parede Nº'],['tipo','Tipo'],
+    ['qtd','Qtd.'],['larg','Largura (m)'],['alt','Altura (m)'],['obs','Observações']
+  ];
+  const STEPPER_IDS = ['luminariasQtd','lampadasQtd','tomadasQtd',
+    'interruptoresSimples','interruptoresParalelo','pontosRede','pontosTelefonia','circuitos',
+    'aguaFria','aguaQuente','esgoto','ralos'];
+  const PREFIX = 'ambiente:';
+  let entries = [];
+  let editingKey = null;
+  let currentWalls = [];       // paredes salvas do ambiente em edição
+  let wallEditIndex = null;    // null = criando nova; N = editando currentWalls[N]
+
+  const hasClaudeStorage = (typeof window !== 'undefined') && !!window.storage;
+  const storageAdapter = {
+    mode: hasClaudeStorage ? 'claude' : 'local',
+    async list(prefix){
+      if(hasClaudeStorage) return window.storage.list(prefix, false);
+      const keys = Object.keys(localStorage).filter(k=>k.indexOf(prefix)===0);
+      return {keys};
+    },
+    async get(key){
+      if(hasClaudeStorage) return window.storage.get(key, false);
+      const v = localStorage.getItem(key);
+      if(v===null) return null;
+      return {key, value:v};
+    },
+    async set(key, value){
+      if(hasClaudeStorage) return window.storage.set(key, value, false);
+      localStorage.setItem(key, value);
+      return {key, value};
+    },
+    async delete(key){
+      if(hasClaudeStorage) return window.storage.delete(key, false);
+      localStorage.removeItem(key);
+      return {key, deleted:true};
+    }
+  };
+
+  const $ = id => document.getElementById(id);
+  const toast = (msg) => {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 1600);
+  };
+  const num = (v) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+      tab.classList.add('active');
+      $('screen-'+tab.dataset.screen).classList.add('active');
+      $('footForm').style.display = tab.dataset.screen === 'form' ? 'flex' : 'none';
+      if(tab.dataset.screen === 'list') renderList();
+      if(tab.dataset.screen === 'export') { $('csvOut').value=''; }
+    });
+  });
+
+  // ---------- Steppers genéricos ----------
+  document.querySelectorAll('.stepper .plus[data-target]').forEach(b=>{
+    b.addEventListener('click', ()=>{ const t = $(b.dataset.target); t.textContent = parseInt(t.textContent)+1; });
+  });
+  document.querySelectorAll('.stepper .minus[data-target]').forEach(b=>{
+    b.addEventListener('click', ()=>{ const t = $(b.dataset.target); t.textContent = Math.max(0, parseInt(t.textContent)-1); });
+  });
+
+  // ---------- Chips gerais ----------
+  function wireMaterialChips(chipGroupId, inputId){
+    document.getElementById(chipGroupId).addEventListener('click', (e)=>{
+      const chip = e.target.closest('.chip');
+      if(!chip) return;
+      document.querySelectorAll(`#${chipGroupId} .chip`).forEach(c=>c.classList.remove('selected'));
+      chip.classList.add('selected');
+      const input = $(inputId);
+      if(chip.textContent === 'Outro'){
+        input.value = '';
+        input.focus();
+      } else {
+        input.value = chip.textContent;
+      }
+    });
+  }
+  wireMaterialChips('chip_piso', 'f_piso');
+  wireMaterialChips('chip_paredesObs', 'f_paredesObs');
+  wireMaterialChips('chip_teto', 'f_teto');
+  wireMaterialChips('chip_materialToldo', 'f_materialToldo');
+  $('chip_toldo').addEventListener('click', (e)=>{
+    if(!e.target.classList.contains('chip')) return;
+    document.querySelectorAll('#chip_toldo .chip').forEach(c=>c.classList.remove('selected'));
+    e.target.classList.add('selected');
+    $('toldoBlock').style.display = e.target.dataset.v === 'Sim' ? 'block' : 'none';
+  });
+
+  // toggle genérico Sim/Não que mostra/esconde um bloco de detalhe (torneira/lavabo/chuveiro)
+  function wireSimNaoToggle(chipGroupId, blockId){
+    $(chipGroupId).addEventListener('click', (e)=>{
+      if(!e.target.classList.contains('chip')) return;
+      document.querySelectorAll(`#${chipGroupId} .chip`).forEach(c=>c.classList.remove('selected'));
+      e.target.classList.add('selected');
+      $(blockId).style.display = e.target.dataset.v === 'Sim' ? 'block' : 'none';
+    });
+  }
+  wireSimNaoToggle('chip_torneira', 'blocoTipoTorneira');
+  wireSimNaoToggle('chip_lavabo', 'blocoTipoLavabo');
+  wireSimNaoToggle('chip_chuveiro', 'blocoTipoChuveiro');
+
+  // grupos de chip de seleção única (sem input de texto por trás — "Outro" fica como o próprio valor)
+  function wireSingleSelectChips(groupId){
+    $(groupId).addEventListener('click', (e)=>{
+      if(!e.target.classList.contains('chip')) return;
+      document.querySelectorAll(`#${groupId} .chip`).forEach(c=>c.classList.remove('selected'));
+      e.target.classList.add('selected');
+    });
+  }
+  wireSingleSelectChips('chip_tipoTorneira');
+  wireSingleSelectChips('chip_tipoLavabo');
+  wireSingleSelectChips('chip_tipoChuveiro');
+  function selectedChipText(groupId){
+    const sel = document.querySelector(`#${groupId} .chip.selected`);
+    return sel ? sel.textContent.trim() : '';
+  }
+  function syncSingleSelectChip(groupId, value){
+    document.querySelectorAll(`#${groupId} .chip`).forEach(c=>c.classList.toggle('selected', c.textContent.trim() === value));
+  }
+
+  function syncMaterialChip(chipGroupId, value){
+    document.querySelectorAll(`#${chipGroupId} .chip`).forEach(c=>{
+      c.classList.toggle('selected', c.textContent === value);
+    });
+  }
+
+  window.onDimAmbienteChange = function(){
+    const area = num($('f_comprimentoAmb').value) * num($('f_larguraAmb').value);
+    $('f_areaCalc').value = area.toFixed(2);
+  };
+
+  $('chip_situacao').addEventListener('click', (e)=>{
+    if(!e.target.classList.contains('chip')) return;
+    document.querySelectorAll('#chip_situacao .chip').forEach(c=>c.classList.remove('selected'));
+    e.target.classList.add('selected');
+  });
+
+  function renderUnidadeSuggestions(){
+    const container = $('chip_unidadeSugestoes');
+    const seen = [];
+    entries.slice().reverse().forEach(e=>{
+      const u = (e.data.unidade || '').trim();
+      if(u && !seen.includes(u)) seen.push(u);
+    });
+    const recent = seen.slice(0, 4);
+    container.innerHTML = '';
+    if(recent.length === 0) return;
+    recent.forEach(u=>{
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.textContent = u.length > 28 ? u.slice(0,26)+'…' : u;
+      chip.title = u;
+      chip.addEventListener('click', ()=>{ $('f_unidade').value = u; });
+      container.appendChild(chip);
+    });
+  }
+
+  $('chip_uso').addEventListener('click', (e)=>{
+    if(!e.target.classList.contains('chip')) return;
+    document.querySelectorAll('#chip_uso .chip').forEach(c=>c.classList.remove('selected'));
+    e.target.classList.add('selected');
+    if(e.target.textContent === 'Outros'){
+      $('f_uso').value = '';
+      $('f_uso').focus();
+    } else {
+      $('f_uso').value = e.target.textContent;
+    }
+  });
+  $('chip_estado').addEventListener('click', (e)=>{
+    if(!e.target.classList.contains('chip')) return;
+    document.querySelectorAll('#chip_estado .chip').forEach(c=>c.classList.remove('selected'));
+    e.target.classList.add('selected');
+  });
+  $('chip_aterramento').addEventListener('click', (e)=>{
+    if(!e.target.classList.contains('chip')) return;
+    document.querySelectorAll('#chip_aterramento .chip').forEach(c=>c.classList.remove('selected'));
+    e.target.classList.add('selected');
+  });
+
+  $('btnAutoFoto').addEventListener('click', ()=>{
+    const n = (entries.length + 1).toString().padStart(3,'0');
+    $('f_foto').value = 'FOTO-' + n;
+  });
+
+  // ================= PAREDES: adicionar / editar individualmente =================
+  const PORTA_PRESETS = [
+    {l:0.60, a:2.10, label:'0,60×2,10'}, {l:0.70, a:2.10, label:'0,70×2,10'},
+    {l:0.80, a:2.10, label:'0,80×2,10'}, {l:0.90, a:2.10, label:'0,90×2,10'},
+  ];
+  const JANELA_PRESETS = [
+    {l:1.00, a:1.00, label:'1,00×1,00'}, {l:1.20, a:1.00, label:'1,20×1,00'},
+    {l:1.20, a:1.20, label:'1,20×1,20'},
+  ];
+  function blankVao(presets){
+    const p = presets[presets.length-1];
+    return { qtd:1, larg:p.l, alt:p.a, custom:false };
+  }
+  // Normaliza paredes salvas em versões antigas do app (porta/janela única, sem
+  // nome/altura própria) para o formato atual, sem perder dados já salvos.
+  function normalizeWall(w){
+    const nw = Object.assign({}, w);
+    if(!Array.isArray(nw.portas)){
+      nw.portas = (num(w.portasQtd) > 0) ? [{qtd:num(w.portasQtd), larg:num(w.portaLarg)||0.80, alt:num(w.portaAlt)||2.10}] : [];
+    }
+    if(!Array.isArray(nw.janelas)){
+      nw.janelas = (num(w.janelasQtd) > 0) ? [{qtd:num(w.janelasQtd), larg:num(w.janelaLarg)||1.20, alt:num(w.janelaAlt)||1.20}] : [];
+    }
+    if(nw.alturaParede === undefined || nw.alturaParede === null || nw.alturaParede === ''){
+      nw.alturaParede = $('f_pedireito').value || '';
+    }
+    if(nw.nome === undefined) nw.nome = '';
+    return nw;
+  }
+  function calcWall(w){
+    const comp = num(w.comprimento);
+    const altura = num(w.alturaParede);
+    const areaBruta = comp * altura;
+    const somaVaos = (arr)=> (arr||[]).reduce((s,v)=> s + num(v.qtd)*num(v.larg)*num(v.alt), 0);
+    const areaVaos = somaVaos(w.portas) + somaVaos(w.janelas);
+    const areaLiquida = Math.max(areaBruta - areaVaos, 0);
+    const areaRevest = Math.min(comp*num(w.alturaRevest), areaLiquida);
+    const areaPintura = Math.max(areaLiquida - areaRevest, 0);
+    return {areaBruta, areaVaos, areaRevest, areaPintura};
+  }
+  function countVaos(w){
+    const soma = (arr)=> (arr||[]).reduce((s,v)=> s+num(v.qtd), 0);
+    return soma(w.portas) + soma(w.janelas);
+  }
+
+  function renderWallsList(){
+    const container = $('wallsListContainer');
+    container.innerHTML = '';
+    $('wallsEmpty').style.display = currentWalls.length === 0 ? 'block' : 'none';
+    currentWalls.forEach((w, idx)=>{
+      const c = calcWall(w);
+      const portasQtd = (w.portas||[]).reduce((s,v)=>s+num(v.qtd),0);
+      const janelasQtd = (w.janelas||[]).reduce((s,v)=>s+num(v.qtd),0);
+      const temRevest = num(w.alturaRevest) > 0;
+      const nome = (w.nome && w.nome.trim()) ? w.nome.trim() : `Parede ${idx+1}`;
+      const row = document.createElement('div');
+      row.className = 'wallRow';
+      row.innerHTML = `
+        <div class="tag">${idx+1}</div>
+        <div class="info">
+          <div class="l1">${escapeHtml(nome)} · ${num(w.comprimento).toFixed(2)}×${num(w.alturaParede).toFixed(2)} m · Área ${c.areaBruta.toFixed(2)} m²</div>
+          <div class="l2">Pintura ${c.areaPintura.toFixed(2)} m² · Revest. ${c.areaRevest.toFixed(2)} m²</div>
+          <div class="badges">
+            <span class="badge ${portasQtd?'':'off'}">${portasQtd ? '🚪 '+portasQtd+' porta(s)' : 'Sem porta'}</span>
+            <span class="badge ${janelasQtd?'':'off'}">${janelasQtd ? '🪟 '+janelasQtd+' janela(s)' : 'Sem janela'}</span>
+            <span class="badge ${temRevest?'':'off'}">${temRevest ? 'Revestida' : 'Só pintura'}</span>
+          </div>
+        </div>
+        <div class="acts" style="display:flex; flex-direction:column; gap:6px;">
+          <div class="iconbtn" data-act="editWall" data-idx="${idx}">✏️</div>
+          <div class="iconbtn" data-act="delWall" data-idx="${idx}">🗑️</div>
+        </div>`;
+      container.appendChild(row);
+    });
+    container.querySelectorAll('[data-act="editWall"]').forEach(b=>{
+      b.addEventListener('click', ()=> openWallEditor(parseInt(b.dataset.idx)));
+    });
+    container.querySelectorAll('[data-act="delWall"]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        if(confirm('Remover esta parede?')){
+          currentWalls.splice(parseInt(b.dataset.idx), 1);
+          renderWallsList();
+          updateRoomSummary();
+        }
+      });
+    });
+    updateRoomSummary();
+  }
+
+  function updateRoomSummary(){
+    let pintura=0, revest=0, vaos=0;
+    currentWalls.forEach(w=>{
+      const c = calcWall(w);
+      pintura += c.areaPintura; revest += c.areaRevest;
+      vaos += countVaos(w);
+    });
+    $('sumParedes').textContent = currentWalls.length;
+    $('sumPintura').textContent = pintura.toFixed(2);
+    $('sumRevest').textContent = revest.toFixed(2);
+    $('sumVaos').textContent = vaos;
+  }
+
+  // ---- Painel editor: rascunho separado (weDraft), com listas de portas/janelas ----
+  let weDraft = null;
+
+  function openWallEditor(idx){
+    wallEditIndex = idx; // null = nova
+    const w = (idx !== null) ? normalizeWall(currentWalls[idx]) : {
+      nome:'', comprimento:'', alturaParede: $('f_pedireito').value || '',
+      portas:[], janelas:[], alturaRevest:'', tipoRevest:'', obs:''
+    };
+    weDraft = {
+      nome: w.nome || '', comprimento: w.comprimento || '', alturaParede: w.alturaParede || '',
+      portas: JSON.parse(JSON.stringify(w.portas || [])),
+      janelas: JSON.parse(JSON.stringify(w.janelas || [])),
+      alturaRevest: w.alturaRevest || '', tipoRevest: w.tipoRevest || '', obs: w.obs || ''
+    };
+    $('weTitle').textContent = (idx !== null)
+      ? `Editando: ${(w.nome && w.nome.trim()) ? w.nome.trim() : 'Parede '+(idx+1)}`
+      : 'Nova Parede';
+    $('we_nome').value = weDraft.nome;
+    $('we_comprimento').value = weDraft.comprimento;
+    $('we_alturaParede').value = weDraft.alturaParede;
+    $('we_obs').value = weDraft.obs;
+
+    const temRevest = num(weDraft.alturaRevest) > 0;
+    setToggle('we_chip_revest', temRevest ? 'sim' : 'nao');
+    $('we_revestBlock').style.display = temRevest ? 'block' : 'none';
+    $('we_alturaRevest').value = weDraft.alturaRevest;
+    $('we_tipoRevest').value = weDraft.tipoRevest;
+
+    renderVaoList('portas');
+    renderVaoList('janelas');
+
+    $('wallEditor').classList.add('show');
+    $('btnAddWall').style.display = 'none';
+    updateWeCalc();
+    $('wallEditor').scrollIntoView({behavior:'smooth', block:'center'});
+  }
+  function closeWallEditor(){
+    $('wallEditor').classList.remove('show');
+    $('btnAddWall').style.display = 'block';
+    wallEditIndex = null;
+    weDraft = null;
+  }
+  function setToggle(groupId, value){
+    document.querySelectorAll(`#${groupId} .chip`).forEach(c=>{
+      c.classList.toggle('selected', c.dataset.v === value);
+    });
+  }
+  function getToggle(groupId){
+    const sel = document.querySelector(`#${groupId} .chip.selected`);
+    return sel ? sel.dataset.v : 'nao';
+  }
+
+  // ---- listas dinâmicas de porta/janela dentro do editor (múltiplas por parede) ----
+  function vaoConfig(kind){
+    return kind === 'portas'
+      ? { arrKey:'portas', containerId:'we_portasContainer', presets:PORTA_PRESETS, emptyMsg:'Nenhuma porta nesta parede.' }
+      : { arrKey:'janelas', containerId:'we_janelasContainer', presets:JANELA_PRESETS, emptyMsg:'Nenhuma janela nesta parede.' };
+  }
+  function renderVaoList(kind){
+    const cfg = vaoConfig(kind);
+    const container = $(cfg.containerId);
+    const arr = weDraft[cfg.arrKey];
+    container.innerHTML = '';
+    if(arr.length === 0){
+      container.innerHTML = `<div class="vaoEmpty">${cfg.emptyMsg}</div>`;
+      return;
+    }
+    arr.forEach((v, i)=>{
+      const matched = cfg.presets.find(p=> Math.abs(p.l-num(v.larg))<0.005 && Math.abs(p.a-num(v.alt))<0.005);
+      const isOutra = (typeof v.custom === 'boolean') ? v.custom : !matched;
+      const chipsHtml = cfg.presets.map(p=>
+        `<div class="chip ${(!isOutra && matched && matched.l===p.l && matched.a===p.a) ? 'selected':''}" data-kind="${kind}" data-idx="${i}" data-l="${p.l}" data-a="${p.a}">${p.label}</div>`
+      ).join('') + `<div class="chip ${isOutra?'selected':''}" data-kind="${kind}" data-idx="${i}" data-v="outra">Outra</div>`;
+      const row = document.createElement('div');
+      row.className = 'vaoRow';
+      row.innerHTML = `
+        <div class="vaoRowHead">
+          <div class="stepper">
+            <button class="minus" data-act="vaoQtdMinus" data-kind="${kind}" data-idx="${i}">−</button>
+            <div class="val">${v.qtd}</div>
+            <button class="plus" data-act="vaoQtdPlus" data-kind="${kind}" data-idx="${i}">+</button>
+          </div>
+          <div class="vaoRowRemove" data-act="vaoRemove" data-kind="${kind}" data-idx="${i}">🗑️</div>
+        </div>
+        <div class="chipRow small">${chipsHtml}</div>
+        <div class="row2" style="display:${isOutra?'grid':'none'}; margin-top:8px;">
+          <div class="field" style="margin-bottom:0;"><label>Larg. (m)</label><input type="number" inputmode="decimal" data-act="vaoLarg" data-kind="${kind}" data-idx="${i}" value="${v.larg}"></div>
+          <div class="field" style="margin-bottom:0;"><label>Alt. (m)</label><input type="number" inputmode="decimal" data-act="vaoAlt" data-kind="${kind}" data-idx="${i}" value="${v.alt}"></div>
+        </div>`;
+      container.appendChild(row);
+    });
+  }
+  ['we_portasContainer','we_janelasContainer'].forEach(containerId=>{
+    $(containerId).addEventListener('click', (e)=>{
+      const el = e.target.closest('[data-act], .chip[data-kind]');
+      if(!el) return;
+      const kind = el.dataset.kind;
+      const idx = parseInt(el.dataset.idx);
+      const arr = weDraft[vaoConfig(kind).arrKey];
+      if(el.dataset.act === 'vaoQtdPlus'){ arr[idx].qtd = num(arr[idx].qtd)+1; renderVaoList(kind); }
+      else if(el.dataset.act === 'vaoQtdMinus'){ arr[idx].qtd = Math.max(1, num(arr[idx].qtd)-1); renderVaoList(kind); }
+      else if(el.dataset.act === 'vaoRemove'){ arr.splice(idx,1); renderVaoList(kind); }
+      else if(el.classList.contains('chip')){
+        if(el.dataset.v === 'outra'){
+          arr[idx].custom = true;
+        } else {
+          arr[idx].larg = parseFloat(el.dataset.l);
+          arr[idx].alt = parseFloat(el.dataset.a);
+          arr[idx].custom = false;
+        }
+        renderVaoList(kind);
+      } else { return; }
+      updateWeCalc();
+    });
+    $(containerId).addEventListener('input', (e)=>{
+      const el = e.target.closest('[data-act="vaoLarg"], [data-act="vaoAlt"]');
+      if(!el) return;
+      const kind = el.dataset.kind;
+      const idx = parseInt(el.dataset.idx);
+      const arr = weDraft[vaoConfig(kind).arrKey];
+      if(el.dataset.act === 'vaoLarg') arr[idx].larg = el.value; else arr[idx].alt = el.value;
+      updateWeCalc();
+    });
+  });
+  $('we_addPorta').addEventListener('click', ()=>{
+    weDraft.portas.push(blankVao(PORTA_PRESETS));
+    renderVaoList('portas');
+    updateWeCalc();
+  });
+  $('we_addJanela').addEventListener('click', ()=>{
+    weDraft.janelas.push(blankVao(JANELA_PRESETS));
+    renderVaoList('janelas');
+    updateWeCalc();
+  });
+
+  function updateWeCalc(){
+    weDraft.nome = $('we_nome').value;
+    weDraft.comprimento = $('we_comprimento').value;
+    weDraft.alturaParede = $('we_alturaParede').value;
+    weDraft.obs = $('we_obs').value;
+    const temRevest = getToggle('we_chip_revest') === 'sim';
+    weDraft.alturaRevest = temRevest ? $('we_alturaRevest').value : '';
+    weDraft.tipoRevest = temRevest ? $('we_tipoRevest').value : '';
+    const c = calcWall(weDraft);
+    $('weCalc').textContent = `Área da parede: ${c.areaBruta.toFixed(2)} m² · Vãos: ${c.areaVaos.toFixed(2)} m² · `
+      + `Revestimento: ${c.areaRevest.toFixed(2)} m² · Pintura: ${c.areaPintura.toFixed(2)} m²`;
+  }
+
+  $('we_chip_revest').addEventListener('click', (e)=>{
+    if(!e.target.classList.contains('chip')) return;
+    setToggle('we_chip_revest', e.target.dataset.v);
+    $('we_revestBlock').style.display = e.target.dataset.v === 'sim' ? 'block' : 'none';
+    updateWeCalc();
+  });
+  ['we_nome','we_comprimento','we_alturaParede','we_alturaRevest','we_tipoRevest','we_obs'].forEach(id=>{
+    $(id).addEventListener('input', updateWeCalc);
+  });
+
+  $('btnAddWall').addEventListener('click', ()=> openWallEditor(null));
+  $('btnCancelWall').addEventListener('click', closeWallEditor);
+  $('btnSaveWall').addEventListener('click', ()=>{
+    updateWeCalc();
+    if(!weDraft.comprimento || num(weDraft.comprimento) <= 0){
+      toast('Informe o comprimento da parede');
+      return;
+    }
+    if(!weDraft.alturaParede || num(weDraft.alturaParede) <= 0){
+      toast('Informe a altura da parede');
+      return;
+    }
+    const wallToSave = JSON.parse(JSON.stringify(weDraft));
+    if(wallEditIndex !== null){ currentWalls[wallEditIndex] = wallToSave; }
+    else { currentWalls.push(wallToSave); }
+    closeWallEditor();
+    renderWallsList();
+    toast('Parede salva');
+  });
+
+  // A altura de cada parede agora é independente (definida por parede), então
+  // mudar o pé-direito do ambiente não precisa recalcular paredes já criadas.
+  window.onPeDireitoChange = function(){};
+
+
+  // ---------- Collect / Fill form ----------
+  function collectForm(){
+    const estadoChip = document.querySelector('#chip_estado .chip.selected');
+    const aterramentoChip = document.querySelector('#chip_aterramento .chip.selected');
+    const situacaoChip = document.querySelector('#chip_situacao .chip.selected');
+    const toldoChip = document.querySelector('#chip_toldo .chip.selected');
+    const torneiraChip = document.querySelector('#chip_torneira .chip.selected');
+    const lavaboChip = document.querySelector('#chip_lavabo .chip.selected');
+    const chuveiroChip = document.querySelector('#chip_chuveiro .chip.selected');
+    const data = {
+      unidade: $('f_unidade').value.trim(), situacao: situacaoChip ? situacaoChip.dataset.v : '',
+      pavimento: $('f_pavimento').value, ambiente: $('f_ambiente').value.trim(), uso: $('f_uso').value.trim(),
+      comprimentoAmb: $('f_comprimentoAmb').value, larguraAmb: $('f_larguraAmb').value, pedireito: $('f_pedireito').value,
+      piso: $('f_piso').value.trim(), paredesObs: $('f_paredesObs').value.trim(), teto: $('f_teto').value.trim(),
+      estrutura: $('f_estrutura').value.trim(), patologia: $('f_patologia').value.trim(),
+      luminariasTipo: $('f_luminariasTipo').value, lampadasTipo: $('f_lampadasTipo').value,
+      lampadasPotencia: $('f_lampadasPotencia').value,
+      tomadasInstalacao: $('f_tomadasInstalacao').value, tomadasCapacidade: $('f_tomadasCapacidade').value,
+      disjuntor: $('f_disjuntor').value, disjuntorFase: $('f_disjuntorFase').value, secaoCabo: $('f_secaoCabo').value,
+      aterramento: aterramentoChip ? aterramentoChip.dataset.v : '',
+      quadro: $('f_quadro').value.trim(),
+      loucas: $('f_loucas').value.trim(),
+      temTorneira: torneiraChip ? torneiraChip.dataset.v : 'Não',
+      tipoTorneira: (torneiraChip && torneiraChip.dataset.v === 'Sim') ? selectedChipText('chip_tipoTorneira') : '',
+      temLavabo: lavaboChip ? lavaboChip.dataset.v : 'Não',
+      tipoLavabo: (lavaboChip && lavaboChip.dataset.v === 'Sim') ? selectedChipText('chip_tipoLavabo') : '',
+      temChuveiro: chuveiroChip ? chuveiroChip.dataset.v : 'Não',
+      tipoChuveiro: (chuveiroChip && chuveiroChip.dataset.v === 'Sim') ? selectedChipText('chip_tipoChuveiro') : '',
+      especPintura: $('f_especPintura').value.trim(), clima: $('f_clima').value.trim(),
+      incendio: $('f_incendio').value.trim(), acessibilidade: $('f_acessibilidade').value.trim(),
+      temToldo: toldoChip ? toldoChip.dataset.v : 'Não',
+      areaToldo: (toldoChip && toldoChip.dataset.v === 'Sim') ? $('f_areaToldo').value : '',
+      materialToldo: (toldoChip && toldoChip.dataset.v === 'Sim') ? $('f_materialToldo').value.trim() : '',
+      estado: estadoChip ? estadoChip.dataset.v : '', foto: $('f_foto').value.trim(), obs: $('f_obs').value.trim(),
+      walls: JSON.parse(JSON.stringify(currentWalls)),
+      _savedAt: Date.now()
+    };
+    STEPPER_IDS.forEach(id=>{ data[id] = $('f_'+id).textContent; });
+    data.areaCalc = (num(data.comprimentoAmb) * num(data.larguraAmb)).toFixed(2);
+    return data;
+  }
+
+  function fillForm(data){
+    $('f_unidade').value = data.unidade || '';
+    document.querySelectorAll('#chip_situacao .chip').forEach(c=>c.classList.toggle('selected', c.dataset.v === data.situacao));
+    $('f_pavimento').value = data.pavimento || '';
+    $('f_ambiente').value = data.ambiente || '';
+    $('f_uso').value = data.uso || '';
+    $('f_comprimentoAmb').value = data.comprimentoAmb || '';
+    $('f_larguraAmb').value = data.larguraAmb || '';
+    onDimAmbienteChange();
+    $('f_pedireito').value = data.pedireito || '';
+    $('f_piso').value = data.piso || '';
+    syncMaterialChip('chip_piso', data.piso || '');
+    $('f_paredesObs').value = data.paredesObs || '';
+    syncMaterialChip('chip_paredesObs', data.paredesObs || '');
+    $('f_teto').value = data.teto || '';
+    syncMaterialChip('chip_teto', data.teto || '');
+    $('f_estrutura').value = data.estrutura || '';
+    $('f_patologia').value = data.patologia || '';
+    STEPPER_IDS.forEach(id=>{ $('f_'+id).textContent = data[id] || 0; });
+    $('f_luminariasTipo').value = data.luminariasTipo || '';
+    $('f_lampadasTipo').value = data.lampadasTipo || '';
+    $('f_lampadasPotencia').value = data.lampadasPotencia || '';
+    $('f_tomadasInstalacao').value = data.tomadasInstalacao || '';
+    $('f_tomadasCapacidade').value = data.tomadasCapacidade || '';
+    $('f_disjuntor').value = data.disjuntor || '';
+    $('f_disjuntorFase').value = data.disjuntorFase || '';
+    $('f_secaoCabo').value = data.secaoCabo || '';
+    $('f_quadro').value = data.quadro || '';
+    $('f_loucas').value = data.loucas || '';
+
+    const torneiraSim = data.temTorneira === 'Sim';
+    document.querySelectorAll('#chip_torneira .chip').forEach(c=>c.classList.toggle('selected', c.dataset.v === (data.temTorneira || 'Não')));
+    $('blocoTipoTorneira').style.display = torneiraSim ? 'block' : 'none';
+    syncSingleSelectChip('chip_tipoTorneira', data.tipoTorneira || '');
+
+    const lavaboSim = data.temLavabo === 'Sim';
+    document.querySelectorAll('#chip_lavabo .chip').forEach(c=>c.classList.toggle('selected', c.dataset.v === (data.temLavabo || 'Não')));
+    $('blocoTipoLavabo').style.display = lavaboSim ? 'block' : 'none';
+    syncSingleSelectChip('chip_tipoLavabo', data.tipoLavabo || '');
+
+    const chuveiroSim = data.temChuveiro === 'Sim';
+    document.querySelectorAll('#chip_chuveiro .chip').forEach(c=>c.classList.toggle('selected', c.dataset.v === (data.temChuveiro || 'Não')));
+    $('blocoTipoChuveiro').style.display = chuveiroSim ? 'block' : 'none';
+    syncSingleSelectChip('chip_tipoChuveiro', data.tipoChuveiro || '');
+
+    $('f_especPintura').value = data.especPintura || '';
+    $('f_clima').value = data.clima || '';
+    $('f_incendio').value = data.incendio || '';
+    $('f_acessibilidade').value = data.acessibilidade || '';
+    const toldoSim = data.temToldo === 'Sim';
+    document.querySelectorAll('#chip_toldo .chip').forEach(c=>c.classList.toggle('selected', c.dataset.v === (data.temToldo || 'Não')));
+    $('toldoBlock').style.display = toldoSim ? 'block' : 'none';
+    $('f_areaToldo').value = data.areaToldo || '';
+    $('f_materialToldo').value = data.materialToldo || '';
+    syncMaterialChip('chip_materialToldo', data.materialToldo || '');
+    $('f_foto').value = data.foto || '';
+    $('f_obs').value = data.obs || '';
+    document.querySelectorAll('#chip_estado .chip').forEach(c=>c.classList.toggle('selected', c.dataset.v === data.estado));
+    document.querySelectorAll('#chip_aterramento .chip').forEach(c=>c.classList.toggle('selected', c.dataset.v === data.aterramento));
+    document.querySelectorAll('#chip_uso .chip').forEach(c=>c.classList.toggle('selected', c.textContent === data.uso));
+    currentWalls = (data.walls && data.walls.length) ? data.walls.map(normalizeWall) : [];
+    closeWallEditor();
+    renderWallsList();
+  }
+
+  function clearForm(){ fillForm({}); }
+
+  // ---------- Storage ----------
+  async function loadAll(){
+    try{
+      const res = await storageAdapter.list(PREFIX);
+      if(!res || !res.keys || res.keys.length === 0){ entries = []; updateCount(); return; }
+      const loaded = [];
+      for(const k of res.keys){
+        try{
+          const r = await storageAdapter.get(k);
+          if(r && r.value) loaded.push({key:k, data: JSON.parse(r.value)});
+        }catch(e){}
+      }
+      loaded.sort((a,b)=> (a.data._savedAt||0) - (b.data._savedAt||0));
+      entries = loaded;
+      updateCount();
+      renderUnidadeSuggestions();
+    }catch(e){
+      console.error('Erro ao carregar dados', e);
+      toast('Não foi possível carregar dados salvos');
+    }
+  }
+
+  async function saveEntry(data, existingKey){
+    const key = existingKey || (PREFIX + Date.now());
+    try{
+      const result = await storageAdapter.set(key, JSON.stringify(data));
+      if(!result){ toast('Falha ao salvar — tente novamente'); return; }
+      await loadAll();
+    }catch(e){ console.error(e); toast('Erro ao salvar'); }
+  }
+
+  async function deleteEntry(key){
+    try{
+      await storageAdapter.delete(key);
+      await loadAll();
+      renderList();
+      toast('Ambiente removido');
+    }catch(e){ console.error(e); toast('Erro ao remover'); }
+  }
+
+  function updateCount(){
+    $('countPill').textContent = entries.length + (entries.length===1 ? ' salvo' : ' salvos');
+  }
+
+  // ---------- Save button ----------
+  $('btnSalvar').addEventListener('click', async ()=>{
+    const data = collectForm();
+    if(!data.unidade || !data.situacao || !data.pavimento || !data.ambiente || !data.comprimentoAmb || !data.larguraAmb || !data.pedireito){
+      toast('Preencha unidade, situação, pavimento, ambiente, comprimento, largura e pé-direito');
+      return;
+    }
+    if(editingKey){
+      data._savedAt = Date.now();
+      await saveEntry(data, editingKey);
+      editingKey = null;
+      $('btnSalvar').textContent = '✓ Salvar ambiente';
+    } else {
+      await saveEntry(data);
+    }
+    clearForm();
+    $('savedBanner').classList.add('show');
+    setTimeout(()=>$('savedBanner').classList.remove('show'), 2200);
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+
+  $('btnDuplicar').addEventListener('click', ()=>{
+    if(entries.length === 0){ toast('Nenhum ambiente salvo ainda'); return; }
+    const last = entries[entries.length-1].data;
+    fillForm(last);
+    $('f_ambiente').value = '';
+    $('f_ambiente').focus();
+    toast('Dados duplicados — ajuste o nome do ambiente');
+  });
+
+  // ---------- List ----------
+  function renderList(){
+    const container = $('listContainer');
+    container.innerHTML = '';
+    if(entries.length === 0){ $('listEmpty').style.display = 'block'; return; }
+    $('listEmpty').style.display = 'none';
+    entries.forEach((e, i)=>{
+      const d = e.data;
+      const nParedes = (d.walls||[]).length;
+      const div = document.createElement('div');
+      div.className = 'listCard';
+      div.innerHTML = `
+        <div class="idx">${i+1}</div>
+        <div class="meta">
+          <div class="name">${escapeHtml(d.ambiente || '(sem nome)')}</div>
+          <div class="sub">${escapeHtml(d.unidade||'—')} · ${escapeHtml(d.pavimento||'—')} · ${d.areaCalc || (num(d.comprimentoAmb)*num(d.larguraAmb)).toFixed(2)} m² · ${nParedes} paredes</div>
+        </div>
+        <div class="acts">
+          <div class="iconbtn" data-act="edit" data-key="${e.key}">✏️</div>
+          <div class="iconbtn" data-act="del" data-key="${e.key}">🗑️</div>
+        </div>`;
+      container.appendChild(div);
+    });
+    container.querySelectorAll('[data-act="edit"]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const entry = entries.find(x=>x.key === b.dataset.key);
+        if(!entry) return;
+        fillForm(entry.data);
+        editingKey = b.dataset.key;
+        $('btnSalvar').textContent = '✓ Atualizar ambiente';
+        document.querySelector('.tab[data-screen="form"]').click();
+        window.scrollTo({top:0});
+      });
+    });
+    container.querySelectorAll('[data-act="del"]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        if(confirm('Remover este ambiente (e suas paredes)?')) deleteEntry(b.dataset.key);
+      });
+    });
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ---------- Export ----------
+  function buildLevTSV(){
+    return entries.map(e=>{
+      const d = e.data;
+      return COLS_LEV.map(([key])=> (d[key]!==undefined && d[key]!==null) ? String(d[key]).replace(/\t/g,' ').replace(/\n/g,' ') : '').join('\t');
+    }).join('\n');
+  }
+  function buildLevCSV(){
+    const header = COLS_LEV.map(([,label])=>`"${label}"`).join(',');
+    const rows = entries.map(e=>{
+      const d = e.data;
+      return COLS_LEV.map(([key])=>{
+        const v = (d[key]!==undefined && d[key]!==null) ? String(d[key]) : '';
+        return `"${v.replace(/"/g,'""')}"`;
+      }).join(',');
+    });
+    return [header, ...rows].join('\n');
+  }
+  function buildWallRows(){
+    const rows = [];
+    entries.forEach((e, i)=>{
+      const cod = i + 2; // linha 3 do Excel (exemplo) é sempre Cód 1; a 1ª linha colada em B4 já é Cód 2
+      const walls = (e.data.walls || []).map(normalizeWall);
+      walls.forEach((w, wi)=>{
+        rows.push({
+          cod: cod, parede: wi+1, nome: (w.nome && w.nome.trim()) ? w.nome.trim() : '',
+          comprimento: w.comprimento||0, alturaParede: w.alturaParede||0,
+          alturaRevest: w.alturaRevest||0, tipoRevest: w.tipoRevest||'Nenhum',
+          obs: w.obs||''
+        });
+      });
+    });
+    return rows;
+  }
+  function buildVaoRows(){
+    const rows = [];
+    entries.forEach((e, i)=>{
+      const cod = i + 2; // ver nota em buildWallRows
+      const walls = (e.data.walls || []).map(normalizeWall);
+      walls.forEach((w, wi)=>{
+        const paredeNum = wi + 1;
+        (w.portas||[]).forEach(v=>{
+          rows.push({ cod, parede: paredeNum, tipo: 'Porta', qtd: v.qtd||0, larg: v.larg||0, alt: v.alt||0, obs: '' });
+        });
+        (w.janelas||[]).forEach(v=>{
+          rows.push({ cod, parede: paredeNum, tipo: 'Janela', qtd: v.qtd||0, larg: v.larg||0, alt: v.alt||0, obs: '' });
+        });
+      });
+    });
+    return rows;
+  }
+  function buildParedesTSV(){
+    const rows = buildWallRows();
+    return rows.map(r=> COLS_PAREDES.map(([key])=> String(r[key]!==undefined?r[key]:'').replace(/\t/g,' ').replace(/\n/g,' ')).join('\t')).join('\n');
+  }
+  function buildParedesCSV(){
+    const rows = buildWallRows();
+    const header = COLS_PAREDES.map(([,label])=>`"${label}"`).join(',');
+    const body = rows.map(r=> COLS_PAREDES.map(([key])=>{
+      const v = String(r[key]!==undefined?r[key]:'');
+      return `"${v.replace(/"/g,'""')}"`;
+    }).join(','));
+    return [header, ...body].join('\n');
+  }
+  function buildVaosTSV(){
+    const rows = buildVaoRows();
+    return rows.map(r=> COLS_VAOS.map(([key])=> String(r[key]!==undefined?r[key]:'').replace(/\t/g,' ').replace(/\n/g,' ')).join('\t')).join('\n');
+  }
+  function buildVaosCSV(){
+    const rows = buildVaoRows();
+    const header = COLS_VAOS.map(([,label])=>`"${label}"`).join(',');
+    const body = rows.map(r=> COLS_VAOS.map(([key])=>{
+      const v = String(r[key]!==undefined?r[key]:'');
+      return `"${v.replace(/"/g,'""')}"`;
+    }).join(','));
+    return [header, ...body].join('\n');
+  }
+
+  async function copyToClipboard(text, successMsg){
+    $('csvOut').value = text;
+    try{ await navigator.clipboard.writeText(text); toast(successMsg); }
+    catch(e){ $('csvOut').select(); toast('Selecione o texto abaixo e copie manualmente'); }
+  }
+
+  $('btnCopyLev').addEventListener('click', ()=>{
+    if(entries.length === 0){ toast('Nenhum ambiente salvo ainda'); return; }
+    copyToClipboard(buildLevTSV(), 'Copiado! Cole na célula B4 da aba Levantamento');
+  });
+  $('btnCopyParedes').addEventListener('click', ()=>{
+    const rows = buildWallRows();
+    if(rows.length === 0){ toast('Nenhuma parede salva ainda'); return; }
+    copyToClipboard(buildParedesTSV(), 'Copiado! Cole na célula A7 da aba Paredes');
+  });
+  $('btnCopyVaos').addEventListener('click', ()=>{
+    const rows = buildVaoRows();
+    if(rows.length === 0){ toast('Nenhuma porta/janela salva ainda'); return; }
+    copyToClipboard(buildVaosTSV(), 'Copiado! Cole na célula A6 da aba Vãos');
+  });
+
+  function downloadCSV(content, filename){
+    const blob = new Blob(["\uFEFF" + content], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  $('btnDownloadLev').addEventListener('click', ()=>{
+    if(entries.length === 0){ toast('Nenhum ambiente salvo ainda'); return; }
+    const csv = buildLevCSV(); $('csvOut').value = csv;
+    downloadCSV(csv, 'levantamento_campo.csv'); toast('Download iniciado');
+  });
+  $('btnDownloadParedes').addEventListener('click', ()=>{
+    const rows = buildWallRows();
+    if(rows.length === 0){ toast('Nenhuma parede salva ainda'); return; }
+    const csv = buildParedesCSV(); $('csvOut').value = csv;
+    downloadCSV(csv, 'paredes_campo.csv'); toast('Download iniciado');
+  });
+  $('btnDownloadVaos').addEventListener('click', ()=>{
+    const rows = buildVaoRows();
+    if(rows.length === 0){ toast('Nenhuma porta/janela salva ainda'); return; }
+    const csv = buildVaosCSV(); $('csvOut').value = csv;
+    downloadCSV(csv, 'vaos_campo.csv'); toast('Download iniciado');
+  });
+
+  $('btnClearAll').addEventListener('click', async ()=>{
+    if(entries.length === 0){ toast('Não há dados para apagar'); return; }
+    if(!confirm('Apagar TODOS os ambientes salvos neste dispositivo? Esta ação não pode ser desfeita.')) return;
+    for(const e of entries){ try{ await storageAdapter.delete(e.key); }catch(err){} }
+    await loadAll();
+    renderList();
+    toast('Todos os dados foram apagados');
+  });
+
+  // ---------- Init ----------
+  if(storageAdapter.mode === 'local'){
+    const note = document.createElement('div');
+    note.style.cssText = 'font-size:10.5px;color:#AFC4D8;margin-top:6px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;';
+    note.textContent = 'Modo standalone: dados salvos apenas neste navegador/dispositivo.';
+    document.querySelector('header').appendChild(note);
+  }
+  renderWallsList();
+  loadAll();
+})();
+</script>
+</body>
+</html>
